@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.servlet.http.HttpSession;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -49,12 +50,15 @@ public class AuthController {
      * POST /api/auth/login
      */
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<?> login(@RequestBody LoginRequest request, HttpSession session) {
         try {
             boolean isValid = userService.verifyPassword(request.getUsername(), request.getPassword());
             
             Map<String, Object> response = new HashMap<>();
             if (isValid) {
+                // ✅ 登入成功，將使用者名稱存入 session
+                session.setAttribute("username", request.getUsername());
+                
                 response.put("success", true);
                 response.put("message", "登入成功");
                 response.put("username", request.getUsername());
@@ -70,5 +74,22 @@ public class AuthController {
             response.put("message", "登入失敗：" + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
+    }
+    
+    /**
+     * 使用者登出 API
+     * POST /api/auth/logout
+     */
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpSession session) {
+        // 清除 session 中的使用者資訊
+        session.removeAttribute("username");
+        // 或者銷毀整個 session
+        // session.invalidate();
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("message", "登出成功");
+        return ResponseEntity.ok(response);
     }
 }
