@@ -87,8 +87,9 @@ async function handleLogin(event) {
         if (response.ok) {
             showMessage('loginMessage', '登入成功！', false);
             localStorage.setItem('username', username);
+            // 登入成功後跳轉到商品頁面
             setTimeout(() => {
-                showWelcome(username);
+                window.location.href = '/products.html';
             }, 1000);
         } else {
             showMessage('loginMessage', data.message || '登入失敗，請檢查用戶名和密碼。', true);

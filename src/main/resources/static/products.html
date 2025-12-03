@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>商品管理系統</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        /* 頂部導航列 */
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+        }
+
+        .header h1::before {
+            content: "🛍️";
+            margin-right: 10px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .username {
+            font-size: 16px;
+        }
+
+        .btn-logout {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid white;
+            padding: 8px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .btn-logout:hover {
+            background: white;
+            color: #667eea;
+        }
+
+        /* 主要內容區 */
+        .content {
+            padding: 30px;
+        }
+
+        /* 操作按鈕區 */
+        .actions {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn-add {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-add:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-add::before {
+            content: "➕";
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+        }
+
+        .search-box input {
+            padding: 10px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 14px;
+            width: 250px;
+            transition: border 0.3s;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn-search {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-search:hover {
+            background: #5568d3;
+        }
+
+        /* 商品表格 */
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        thead {
+            background: #f8f9fa;
+        }
+
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #495057;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        tbody tr {
+            transition: background 0.3s;
+        }
+
+        tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .price {
+            color: #e74c3c;
+            font-weight: 600;
+        }
+
+        /* 操作按鈕 */
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-edit, .btn-delete {
+            padding: 6px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .btn-edit {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-edit:hover {
+            background: #2980b9;
+        }
+
+        .btn-delete {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-delete:hover {
+            background: #c0392b;
+        }
+
+        /* 彈出視窗 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .modal-header h2 {
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #495057;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        .btn-cancel, .btn-submit {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .btn-cancel {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-cancel:hover {
+            background: #5a6268;
+        }
+
+        .btn-submit {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-submit:hover {
+            background: #5568d3;
+        }
+
+        /* 訊息提示 */
+        .message {
+            padding: 15px 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .message.active {
+            display: block;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 載入中動畫 */
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #6c757d;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 50px;
+            color: #6c757d;
+        }
+
+        .empty-state::before {
+            content: "📦";
+            font-size: 60px;
+            display: block;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 頂部導航列 -->
+        <div class="header">
+            <h1>商品管理系統</h1>
+            <div class="user-info">
+                <span class="username">歡迎，<span id="currentUser">載入中...</span></span>
+                <button class="btn-logout" onclick="logout()">登出</button>
+            </div>
+        </div>
+
+        <!-- 主要內容 -->
+        <div class="content">
+            <!-- 訊息提示 -->
+            <div id="message" class="message"></div>
+
+            <!-- 操作區 -->
+            <div class="actions">
+                <button class="btn-add" onclick="showAddModal()">新增商品</button>
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="搜尋商品名稱...">
+                    <button class="btn-search" onclick="searchProducts()">搜尋</button>
+                </div>
+            </div>
+
+            <!-- 商品表格 -->
+            <div class="table-container">
+                <div id="loading" class="loading">
+                    <div class="spinner"></div>
+                    <p>載入中...</p>
+                </div>
+                <table id="productTable" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>商品名稱</th>
+                            <th>類別ID</th>
+                            <th>供應商ID</th>
+                            <th>描述</th>
+                            <th>單價</th>
+                            <th>建立時間</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="productTableBody">
+                        <!-- 資料由 JavaScript 動態填充 -->
+                    </tbody>
+                </table>
+                <div id="emptyState" class="empty-state" style="display: none;">
+                    <p>目前沒有商品資料</p>
+                    <p style="font-size: 14px; margin-top: 10px;">點擊「新增商品」按鈕開始新增</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新增/編輯商品彈出視窗 -->
+    <div id="productModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">新增商品</h2>
+            </div>
+            <form id="productForm">
+                <input type="hidden" id="productId">
+                
+                <div class="form-group">
+                    <label for="productName">商品名稱 *</label>
+                    <input type="text" id="productName" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="categoryId">類別ID *</label>
+                    <input type="number" id="categoryId" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="supplierId">供應商ID *</label>
+                    <input type="number" id="supplierId" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">商品描述</label>
+                    <textarea id="description"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="unitPrice">單價 *</label>
+                    <input type="number" id="unitPrice" step="0.01" required>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn-cancel" onclick="closeModal()">取消</button>
+                    <button type="submit" class="btn-submit">儲存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // API 基礎 URL
+        const API_BASE_URL = '/api';
+
+        // 頁面載入時執行
+        document.addEventListener('DOMContentLoaded', function() {
+            checkLoginStatus();
+            loadProducts();
+        });
+
+        /**
+         * 檢查登入狀態
+         * 修改記錄：2025-12-03
+         * - 從 localStorage 讀取使用者名稱，避免硬編碼
+         * - 未登入時自動跳轉到登入頁面
+         */
+        function checkLoginStatus() {
+            // 從 localStorage 讀取使用者名稱
+            const username = localStorage.getItem('username');
+            if (username) {
+                document.getElementById('currentUser').textContent = username;
+            } else {
+                // 如果沒有登入，跳轉到登入頁面
+                window.location.href = '/login.html';
+            }
+        }
+
+        // 載入所有商品
+        async function loadProducts() {
+            try {
+                showLoading(true);
+                const response = await fetch(`${API_BASE_URL}/products`);
+                
+                if (response.status === 401) {
+                    window.location.href = '/login.html';
+                    return;
+                }
+
+                if (!response.ok) {
+                    throw new Error('載入商品失敗');
+                }
+
+                const products = await response.json();
+                displayProducts(products);
+            } catch (error) {
+                console.error('Error:', error);
+                showMessage('載入商品失敗：' + error.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // 顯示商品列表
+        function displayProducts(products) {
+            const tbody = document.getElementById('productTableBody');
+            const table = document.getElementById('productTable');
+            const emptyState = document.getElementById('emptyState');
+
+            tbody.innerHTML = '';
+
+            if (products.length === 0) {
+                table.style.display = 'none';
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            table.style.display = 'table';
+            emptyState.style.display = 'none';
+
+            products.forEach(product => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${product.productId}</td>
+                    <td>${product.productName}</td>
+                    <td>${product.categoryId}</td>
+                    <td>${product.supplierId}</td>
+                    <td>${product.description || '-'}</td>
+                    <td class="price">NT$ ${parseFloat(product.unitPrice).toLocaleString()}</td>
+                    <td>${new Date(product.createdAt).toLocaleDateString('zh-TW')}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn-edit" onclick="editProduct(${product.productId})">編輯</button>
+                            <button class="btn-delete" onclick="deleteProduct(${product.productId})">刪除</button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // 顯示新增商品視窗
+        function showAddModal() {
+            document.getElementById('modalTitle').textContent = '新增商品';
+            document.getElementById('productForm').reset();
+            document.getElementById('productId').value = '';
+            document.getElementById('productModal').classList.add('active');
+        }
+
+        // 編輯商品
+        async function editProduct(id) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/products/${id}`);
+                
+                if (!response.ok) {
+                    throw new Error('取得商品資料失敗');
+                }
+
+                const product = await response.json();
+                
+                document.getElementById('modalTitle').textContent = '編輯商品';
+                document.getElementById('productId').value = product.productId;
+                document.getElementById('productName').value = product.productName;
+                document.getElementById('categoryId').value = product.categoryId;
+                document.getElementById('supplierId').value = product.supplierId;
+                document.getElementById('description').value = product.description || '';
+                document.getElementById('unitPrice').value = product.unitPrice;
+                
+                document.getElementById('productModal').classList.add('active');
+            } catch (error) {
+                console.error('Error:', error);
+                showMessage('取得商品資料失敗：' + error.message, 'error');
+            }
+        }
+
+        // 刪除商品
+        async function deleteProduct(id) {
+            if (!confirm('確定要刪除這個商品嗎？')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/products/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (!response.ok) {
+                    throw new Error('刪除商品失敗');
+                }
+
+                showMessage('商品刪除成功', 'success');
+                loadProducts();
+            } catch (error) {
+                console.error('Error:', error);
+                showMessage('刪除商品失敗：' + error.message, 'error');
+            }
+        }
+
+        // 關閉彈出視窗
+        function closeModal() {
+            document.getElementById('productModal').classList.remove('active');
+        }
+
+        // 表單提交
+        document.getElementById('productForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const productId = document.getElementById('productId').value;
+            const productData = {
+                productName: document.getElementById('productName').value,
+                categoryId: parseInt(document.getElementById('categoryId').value),
+                supplierId: parseInt(document.getElementById('supplierId').value),
+                description: document.getElementById('description').value,
+                unitPrice: parseFloat(document.getElementById('unitPrice').value)
+            };
+
+            try {
+                let response;
+                if (productId) {
+                    // 更新商品
+                    response = await fetch(`${API_BASE_URL}/products/${productId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(productData)
+                    });
+                } else {
+                    // 新增商品
+                    response = await fetch(`${API_BASE_URL}/products`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(productData)
+                    });
+                }
+
+                if (!response.ok) {
+                    throw new Error(productId ? '更新商品失敗' : '新增商品失敗');
+                }
+
+                showMessage(productId ? '商品更新成功' : '商品新增成功', 'success');
+                closeModal();
+                loadProducts();
+            } catch (error) {
+                console.error('Error:', error);
+                showMessage(error.message, 'error');
+            }
+        });
+
+        // 搜尋商品
+        function searchProducts() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const rows = document.querySelectorAll('#productTableBody tr');
+
+            rows.forEach(row => {
+                const productName = row.cells[1].textContent.toLowerCase();
+                if (productName.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        // Enter 鍵搜尋
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchProducts();
+            }
+        });
+
+        /**
+         * 登出功能
+         * 修改記錄：2025-12-03
+         * - 呼叫後端 logout API 清除 session
+         * - 清除 localStorage 中的使用者資訊
+         * - 跳轉回登入頁面
+         */
+        async function logout() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/logout`, {
+                    method: 'POST'
+                });
+
+                // 清除 localStorage 中的使用者名稱
+                localStorage.removeItem('username');
+                
+                if (response.ok) {
+                    window.location.href = '/login.html';
+                } else {
+                    window.location.href = '/login.html';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                localStorage.removeItem('username');
+                window.location.href = '/login.html';
+            }
+        }
+
+        // 顯示訊息
+        function showMessage(text, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = text;
+            messageDiv.className = `message ${type} active`;
+
+            setTimeout(() => {
+                messageDiv.classList.remove('active');
+            }, 3000);
+        }
+
+        // 顯示載入中
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+        }
+
+        // 點擊彈出視窗外部關閉
+        document.getElementById('productModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>

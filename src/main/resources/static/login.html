@@ -350,35 +350,34 @@
             messageElement.style.display = 'block';
         }
 
+        /**
+         * 處理登入表單提交
+         * 修改記錄：2025-12-03
+         * - 儲存使用者名稱到 localStorage 以便其他頁面使用
+         * - 登入成功後跳轉到顧客購物介面 (shop.html) 而非管理後台 (products.html)
+         */
         async function handleLogin(event) {
             event.preventDefault();
             
-            const username = document.getElementById('loginUsername').value;
-            const password = document.getElementById('loginPassword').value;
-
-            try {
-                const response = await fetch(`${API_BASE_URL}/login`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ username, password })
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    showMessage('登入成功！正在跳轉...', false);
-                    localStorage.setItem('username', username);
-                    setTimeout(() => {
-                        window.location.href = '/';
-                    }, 1500);
-                } else {
-                    showMessage(data.message || '登入失敗，請檢查用戶名和密碼。', true);
-                }
-            } catch (error) {
-                showMessage('無法連接到服務器，請檢查後端是否運行。', true);
-                console.error('Login error:', error);
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    username: document.getElementById('loginUsername').value,
+                    password: document.getElementById('loginPassword').value
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                // 儲存使用者名稱到 localStorage
+                localStorage.setItem('username', data.username);
+                // ✅ 登入成功後跳轉到購物頁面 (顧客介面)
+                // 註：管理後台可直接訪問 /products.html
+                window.location.href = '/shop.html';
+            } else {
+                alert(data.message);
             }
         }
     </script>
