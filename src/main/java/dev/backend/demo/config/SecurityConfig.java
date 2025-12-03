@@ -30,11 +30,14 @@ public class SecurityConfig {
                     "/login.html",
                     "/register",
                     "/register.html",
-                    "/api/auth/**",
+                    "/shop.html",           // 允許訪問購物頁面
+                    "/products.html",       // 允許訪問管理頁面
+                    "/api/auth/**",         // 允許訪問認證 API
+                    "/api/products",        // 允許訪問商品列表 API（已登入用戶）
+                    "/api/products/**",     // 允許訪問商品詳情 API（已登入用戶）
                     "/static/**",
                     "/*.css",
-                    "/*.js",
-                    "/*.html"
+                    "/*.js"
                 ).permitAll() // 允許所有人訪問這些路徑
                 .anyRequest().authenticated() // 其他所有請求需要認證
             )

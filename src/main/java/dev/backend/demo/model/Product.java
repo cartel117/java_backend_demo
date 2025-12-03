@@ -31,11 +31,13 @@ public class Product {
     private String productName;
 
     // 類別ID - 外鍵，關聯到 categories 表
-    @Column(name = "category_id", nullable = false)
+    // 註：移除外鍵約束，允許自由設定類別 ID
+    @Column(name = "category_id", nullable = true)
     private Long categoryId;
 
-    // 供應商ID - 外鍵，關聯到 suppliers 表
-    @Column(name = "supplier_id", nullable = false)
+    // 供應商ID - 外鍵，關聯到 suppliers 表  
+    // 註：移除外鍵約束，允許自由設定供應商 ID
+    @Column(name = "supplier_id", nullable = true)
     private Long supplierId;
 
     // 商品描述
