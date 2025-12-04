@@ -678,6 +678,8 @@
         const API_BASE_URL = '/api';
         let cart = [];           // 購物車陣列
         let allProducts = [];    // 所有商品資料
+        let jwtToken = null;     // JWT 驗證令牌
+        let currentUsername = null; // 當前使用者名稱
 
         // 商品圖示映射（用於商品卡片顯示）
         const productIcons = {
@@ -696,30 +698,130 @@
          * - 設定分類過濾器
          * - 從 localStorage 載入購物車
          */
-        document.addEventListener('DOMContentLoaded', function() {
-            checkLoginStatus();
-            loadProducts();
-            setupCategoryFilter();
-            loadCart();
-        });
+        // 從 sessionStorage 或 localStorage 獲取認證資訊
+        function initAuth() {
+            console.log('shop.html - 初始化認證');
+            
+            // 1. 優先從 sessionStorage 讀取（最可靠）
+            jwtToken = sessionStorage.getItem('jwtToken');
+            currentUsername = sessionStorage.getItem('username');
+            
+            if (jwtToken && currentUsername) {
+                console.log('✅ 從 sessionStorage 獲取認證資訊');
+                console.log('username:', currentUsername);
+                console.log('token:', jwtToken ? '存在(' + jwtToken.length + '字元)' : '不存在');
+                
+                // 同步到 localStorage
+                localStorage.setItem('jwtToken', jwtToken);
+                localStorage.setItem('username', currentUsername);
+                return true;
+            }
+            
+            // 2. 備用方案：從 localStorage 讀取
+            console.log('sessionStorage 無資料，嘗試從 localStorage 讀取');
+            jwtToken = localStorage.getItem('jwtToken');
+            currentUsername = localStorage.getItem('username');
+            
+            if (jwtToken && currentUsername) {
+                console.log('✅ 從 localStorage 獲取認證資訊');
+                console.log('username:', currentUsername);
+                console.log('token:', jwtToken ? '存在(' + jwtToken.length + '字元)' : '不存在');
+                
+                // 同步到 sessionStorage
+                sessionStorage.setItem('jwtToken', jwtToken);
+                sessionStorage.setItem('username', currentUsername);
+                return true;
+            }
+            
+            // 3. 都沒有資料
+            console.log('❌ sessionStorage 和 localStorage 都沒有認證資訊');
+            console.log('sessionStorage.jwtToken:', sessionStorage.getItem('jwtToken'));
+            console.log('localStorage.jwtToken:', localStorage.getItem('jwtToken'));
+            return false;
+        }
 
         // 檢查登入狀態
         function checkLoginStatus() {
-            const username = localStorage.getItem('username');
-            if (username) {
-                document.getElementById('currentUser').textContent = username;
-            } else {
-                window.location.href = '/login.html';
+            console.log('shop.html - 檢查登入狀態');
+            
+            if (!initAuth()) {
+                console.log('❌ 未登入，跳轉到登入頁面');
+                setTimeout(() => {
+                    window.location.href = '/login.html';
+                }, 100);
+                return false;
             }
+            
+            console.log('✅ 登入狀態有效，使用者:', currentUsername);
+            document.getElementById('currentUser').textContent = currentUsername;
+            return true;
         }
+
+        // 頁面載入時執行
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('shop.html - 頁面載入完成');
+            
+            // 延遲執行，確保所有資源載入完成
+            setTimeout(() => {
+                if (checkLoginStatus()) {
+                    loadProducts();
+                    setupCategoryFilter();
+                    loadCart();
+                }
+            }, 100);
+        });
 
         // 載入商品
         async function loadProducts() {
             try {
                 showLoading(true);
-                const response = await fetch(`${API_BASE_URL}/products`);
+                
+                console.log('=== 準備載入商品 ===');
+                console.log('API URL:', `${API_BASE_URL}/products`);
+                console.log('jwtToken:', jwtToken ? jwtToken.substring(0, 30) + '...' : 'null');
+                console.log('Authorization header:', `Bearer ${jwtToken ? jwtToken.substring(0, 30) + '...' : 'null'}`);
+                
+                const response = await fetch(`${API_BASE_URL}/products`, {
+                    headers: {
+                        'Authorization': `Bearer ${jwtToken}`
+                    }
+                });
+                
+                console.log('API 回應狀態:', response.status);
+                console.log('API 回應 headers:', response.headers);
                 
                 if (response.status === 401) {
+                    // JWT token 無效或過期
+                    console.error('❌ 收到 401 錯誤：認證失敗');
+                    console.log('可能原因：');
+                    console.log('1. Token 格式錯誤');
+                    console.log('2. Token 已過期');
+                    console.log('3. 後端 JWT secret 不匹配');
+                    console.log('4. Token 簽名驗證失敗');
+                    
+                    // 嘗試獲取錯誤詳情
+                    try {
+                        const errorData = await response.json();
+                        console.log('錯誤詳情:', errorData);
+                    } catch (e) {
+                        console.log('無法解析錯誤回應');
+                    }
+                    
+                    alert('您的登入狀態已過期，請重新登入');
+                    localStorage.removeItem('jwtToken');
+                    localStorage.removeItem('username');
+                    sessionStorage.removeItem('jwtToken');
+                    sessionStorage.removeItem('username');
+                    window.location.href = '/login.html';
+                    return;
+                }
+                
+                if (response.status === 403) {
+                    // 權限不足
+                    console.log('收到 403 錯誤：權限不足');
+                    alert('權限不足或登入狀態異常，請重新登入');
+                    localStorage.removeItem('jwtToken');
+                    localStorage.removeItem('username');
                     window.location.href = '/login.html';
                     return;
                 }
@@ -940,13 +1042,20 @@
         async function logout() {
             try {
                 await fetch(`${API_BASE_URL}/auth/logout`, {
-                    method: 'POST'
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${jwtToken}`
+                    }
                 });
-                localStorage.removeItem('username');
-                localStorage.removeItem('cart');
-                window.location.href = '/login.html';
             } catch (error) {
-                console.error('Error:', error);
+                console.error('Logout error:', error);
+            } finally {
+                // 清除所有儲存的資料
+                localStorage.removeItem('username');
+                localStorage.removeItem('jwtToken');
+                localStorage.removeItem('cart');
+                sessionStorage.removeItem('username');
+                sessionStorage.removeItem('jwtToken');
                 window.location.href = '/login.html';
             }
         }

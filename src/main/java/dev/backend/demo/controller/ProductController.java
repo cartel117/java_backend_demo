@@ -218,9 +218,18 @@ public class ProductController {
     
     /**
      * 檢查使用者是否已登入
+     * 改用 Spring Security 的認證機制（支援 JWT）
      * @return true 如果已登入，否則 false
      */
     private boolean isAuthenticated(HttpSession session) {
+        // 優先使用 Spring Security 的認證（支援 JWT）
+        var authentication = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.isAuthenticated() && 
+            !"anonymousUser".equals(authentication.getPrincipal())) {
+            return true;
+        }
+        
+        // 備用方案：檢查 session（向後兼容）
         String username = (String) session.getAttribute("username");
         return username != null;
     }

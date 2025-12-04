@@ -343,6 +343,27 @@
         // 使用相對路徑，自動適應不同環境（localhost 或 AWS）
         const API_BASE_URL = '/api/auth';
 
+        // 測試 localStorage 是否可用
+        function testLocalStorage() {
+            try {
+                const testKey = '__test__';
+                localStorage.setItem(testKey, 'test');
+                const result = localStorage.getItem(testKey);
+                localStorage.removeItem(testKey);
+                console.log('localStorage 可用:', result === 'test');
+                return result === 'test';
+            } catch (e) {
+                console.error('localStorage 不可用:', e);
+                alert('您的瀏覽器 localStorage 功能被禁用，請檢查瀏覽器設定或使用無痕模式');
+                return false;
+            }
+        }
+
+        // 頁面載入時測試
+        window.addEventListener('DOMContentLoaded', () => {
+            testLocalStorage();
+        });
+
         function showMessage(message, isError = false) {
             const messageElement = document.getElementById('loginMessage');
             messageElement.textContent = message;
@@ -370,13 +391,53 @@
             
             const data = await response.json();
             
+            console.log('login.html - 登入回應:', data);
+            
             if (data.success) {
-                // 儲存使用者名稱到 localStorage
-                localStorage.setItem('username', data.username);
-                // ✅ 登入成功後跳轉到購物頁面 (顧客介面)
-                // 註：管理後台可直接訪問 /products.html
-                window.location.href = '/shop.html';
+                console.log('✅ 登入成功！');
+                console.log('username:', data.username);
+                console.log('token 長度:', data.token ? data.token.length : 0);
+                console.log('token 前20字元:', data.token ? data.token.substring(0, 20) : 'null');
+                
+                // 同時儲存到 localStorage 和 sessionStorage
+                try {
+                    localStorage.setItem('username', data.username);
+                    localStorage.setItem('jwtToken', data.token);
+                    sessionStorage.setItem('username', data.username);
+                    sessionStorage.setItem('jwtToken', data.token);
+                    console.log('✅ 資料已儲存到 localStorage 和 sessionStorage');
+                } catch (e) {
+                    console.error('❌ 儲存失敗:', e);
+                    alert('無法儲存登入資訊：' + e.message);
+                    return;
+                }
+                
+                // 確認儲存成功
+                const savedUsername = localStorage.getItem('username');
+                const savedToken = localStorage.getItem('jwtToken');
+                const sessionUsername = sessionStorage.getItem('username');
+                const sessionToken = sessionStorage.getItem('jwtToken');
+                
+                console.log('localStorage - username:', savedUsername);
+                console.log('localStorage - token:', savedToken ? '存在(' + savedToken.length + '字元)' : '不存在');
+                console.log('sessionStorage - username:', sessionUsername);
+                console.log('sessionStorage - token:', sessionToken ? '存在(' + sessionToken.length + '字元)' : '不存在');
+                
+                if (!savedToken && !sessionToken) {
+                    console.error('❌ 所有儲存方式都失敗！');
+                    alert('儲存登入資訊失敗，請檢查瀏覽器設定');
+                    return;
+                }
+                
+                console.log('準備跳轉到 /shop.html');
+                
+                // 直接跳轉，不使用 URL 參數
+                setTimeout(() => {
+                    console.log('執行跳轉...');
+                    window.location.href = '/shop.html';
+                }, 200);
             } else {
+                console.log('登入失敗:', data.message);
                 alert(data.message);
             }
         }

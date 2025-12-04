@@ -83,14 +83,25 @@ async function handleLogin(event) {
         });
 
         const data = await response.json();
+        
+        console.log('登入回應:', data);
+        console.log('response.ok:', response.ok);
 
-        if (response.ok) {
+        if (response.ok && data.success) {
             showMessage('loginMessage', '登入成功！', false);
-            localStorage.setItem('username', username);
+            console.log('儲存 username:', data.username);
+            console.log('儲存 token:', data.token);
+            localStorage.setItem('username', data.username);
+            localStorage.setItem('jwtToken', data.token);
+            
+            // 確認儲存成功
+            console.log('localStorage username:', localStorage.getItem('username'));
+            console.log('localStorage token:', localStorage.getItem('jwtToken'));
+            
             // 登入成功後跳轉到商品頁面
             setTimeout(() => {
                 window.location.href = '/products.html';
-            }, 1000);
+            }, 100);
         } else {
             showMessage('loginMessage', data.message || '登入失敗，請檢查用戶名和密碼。', true);
         }

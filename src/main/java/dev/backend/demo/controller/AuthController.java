@@ -4,11 +4,11 @@ import dev.backend.demo.model.User;
 import dev.backend.demo.service.UserService;
 import dev.backend.demo.dto.RegisterRequest;
 import dev.backend.demo.dto.LoginRequest;
+import dev.backend.demo.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import jakarta.servlet.http.HttpSession;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -23,6 +23,9 @@ public class AuthController {
     
     @Autowired // 自動注入 UserService
     private UserService userService;
+
+    @Autowired // 自動注入 JwtUtil
+    private JwtUtil jwtUtil;
     
     /**
      * 使用者註冊 API
@@ -50,18 +53,19 @@ public class AuthController {
      * POST /api/auth/login
      */
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request, HttpSession session) {
+    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         try {
             boolean isValid = userService.verifyPassword(request.getUsername(), request.getPassword());
             
             Map<String, Object> response = new HashMap<>();
             if (isValid) {
-                // ✅ 登入成功，將使用者名稱存入 session
-                session.setAttribute("username", request.getUsername());
+                // ✅ 登入成功，生成 JWT token
+                String token = jwtUtil.generateToken(request.getUsername());
                 
                 response.put("success", true);
                 response.put("message", "登入成功");
                 response.put("username", request.getUsername());
+                response.put("token", token); // 返回 JWT token
                 return ResponseEntity.ok(response);
             } else {
                 response.put("success", false);
@@ -79,14 +83,11 @@ public class AuthController {
     /**
      * 使用者登出 API
      * POST /api/auth/logout
+     * 注意：使用 JWT 時，登出通常由客戶端處理（刪除 token）
+     * 伺服器端可以選擇實現 token 黑名單機制
      */
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(HttpSession session) {
-        // 清除 session 中的使用者資訊
-        session.removeAttribute("username");
-        // 或者銷毀整個 session
-        // session.invalidate();
-        
+    public ResponseEntity<?> logout() {
         Map<String, Object> response = new HashMap<>();
         response.put("success", true);
         response.put("message", "登出成功");

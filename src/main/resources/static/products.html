@@ -495,6 +495,7 @@
     <script>
         // API 基礎 URL
         const API_BASE_URL = '/api';
+        let jwtToken = null;  // JWT 驗證令牌
 
         // 頁面載入時執行
         document.addEventListener('DOMContentLoaded', function() {
@@ -504,29 +505,71 @@
 
         /**
          * 檢查登入狀態
-         * 修改記錄：2025-12-03
+         * 修改記錄：2025-12-04
          * - 從 localStorage 讀取使用者名稱，避免硬編碼
-         * - 未登入時自動跳轉到登入頁面
+         * - 未登入時彈出對話框後跳轉到登入頁面
+         * - 新增 JWT token 檢查
          */
         function checkLoginStatus() {
-            // 從 localStorage 讀取使用者名稱
+            // 從 localStorage 讀取使用者名稱和 JWT token
             const username = localStorage.getItem('username');
-            if (username) {
+            jwtToken = localStorage.getItem('jwtToken');
+            
+            console.log('products.html - 檢查登入狀態');
+            console.log('username:', username);
+            console.log('jwtToken:', jwtToken);
+            console.log('有 username?', !!username);
+            console.log('有 jwtToken?', !!jwtToken);
+            
+            if (username && jwtToken) {
+                console.log('登入狀態有效');
                 document.getElementById('currentUser').textContent = username;
             } else {
-                // 如果沒有登入，跳轉到登入頁面
+                // 如果沒有登入或沒有 token，彈出對話框後跳轉
+                console.log('登入狀態無效，跳轉回登入頁面');
+                alert('請先登入');
                 window.location.href = '/login.html';
             }
+        }
+
+        /**
+         * 處理 HTTP 錯誤回應
+         * 新增於：2025-12-04
+         * - 401: Token 無效或過期，清除登入資訊並跳轉
+         * - 403: 權限不足，彈出對話框提示重新登入
+         * - 其他錯誤: 拋出錯誤訊息
+         */
+        function handleHttpError(response) {
+            if (response.status === 401) {
+                // JWT token 無效或過期
+                alert('您的登入狀態已過期，請重新登入');
+                localStorage.removeItem('jwtToken');
+                localStorage.removeItem('username');
+                window.location.href = '/login.html';
+                return true;
+            } else if (response.status === 403) {
+                // 權限不足
+                alert('權限不足，請重新登入');
+                localStorage.removeItem('jwtToken');
+                localStorage.removeItem('username');
+                window.location.href = '/login.html';
+                return true;
+            }
+            return false;
         }
 
         // 載入所有商品
         async function loadProducts() {
             try {
                 showLoading(true);
-                const response = await fetch(`${API_BASE_URL}/products`);
+                const response = await fetch(`${API_BASE_URL}/products`, {
+                    headers: {
+                        'Authorization': `Bearer ${jwtToken}`
+                    }
+                });
                 
-                if (response.status === 401) {
-                    window.location.href = '/login.html';
+                // 處理 401/403 錯誤
+                if (handleHttpError(response)) {
                     return;
                 }
 
@@ -593,8 +636,17 @@
         // 編輯商品
         async function editProduct(id) {
             try {
-                const response = await fetch(`${API_BASE_URL}/products/${id}`);
+                const response = await fetch(`${API_BASE_URL}/products/${id}`, {
+                    headers: {
+                        'Authorization': `Bearer ${jwtToken}`
+                    }
+                });
                 
+                // 處理 401/403 錯誤
+                if (handleHttpError(response)) {
+                    return;
+                }
+
                 if (!response.ok) {
                     throw new Error('取得商品資料失敗');
                 }
@@ -624,8 +676,16 @@
 
             try {
                 const response = await fetch(`${API_BASE_URL}/products/${id}`, {
-                    method: 'DELETE'
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${jwtToken}`
+                    }
                 });
+
+                // 處理 401/403 錯誤
+                if (handleHttpError(response)) {
+                    return;
+                }
 
                 if (!response.ok) {
                     throw new Error('刪除商品失敗');
@@ -664,7 +724,8 @@
                     response = await fetch(`${API_BASE_URL}/products/${productId}`, {
                         method: 'PUT',
                         headers: {
-                            'Content-Type': 'application/json'
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${jwtToken}`
                         },
                         body: JSON.stringify(productData)
                     });
@@ -673,10 +734,16 @@
                     response = await fetch(`${API_BASE_URL}/products`, {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'application/json'
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${jwtToken}`
                         },
                         body: JSON.stringify(productData)
                     });
+                }
+
+                // 處理 401/403 錯誤
+                if (handleHttpError(response)) {
+                    return;
                 }
 
                 if (!response.ok) {
@@ -716,7 +783,7 @@
 
         /**
          * 登出功能
-         * 修改記錄：2025-12-03
+         * 修改記錄：2025-12-04
          * - 呼叫後端 logout API 清除 session
          * - 清除 localStorage 中的使用者資訊
          * - 跳轉回登入頁面
@@ -724,20 +791,21 @@
         async function logout() {
             try {
                 const response = await fetch(`${API_BASE_URL}/auth/logout`, {
-                    method: 'POST'
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${jwtToken}`
+                    }
                 });
 
-                // 清除 localStorage 中的使用者名稱
+                // 清除 localStorage 中的使用者資訊
                 localStorage.removeItem('username');
+                localStorage.removeItem('jwtToken');
                 
-                if (response.ok) {
-                    window.location.href = '/login.html';
-                } else {
-                    window.location.href = '/login.html';
-                }
+                window.location.href = '/login.html';
             } catch (error) {
                 console.error('Error:', error);
                 localStorage.removeItem('username');
+                localStorage.removeItem('jwtToken');
                 window.location.href = '/login.html';
             }
         }

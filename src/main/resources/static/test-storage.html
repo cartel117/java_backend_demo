@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>localStorage 測試頁面</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        button:hover {
+            background: #5568d3;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f0f0f0;
+            border-left: 3px solid #667eea;
+        }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>🔍 localStorage 除錯工具</h1>
+    
+    <div class="test-section">
+        <h2>1. localStorage 可用性測試</h2>
+        <button onclick="testLocalStorage()">測試 localStorage</button>
+        <div id="storageTest" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. 儲存測試資料</h2>
+        <button onclick="saveTestData()">儲存測試資料</button>
+        <div id="saveResult" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>3. 讀取儲存的資料</h2>
+        <button onclick="readData()">讀取資料</button>
+        <div id="readResult" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>4. 清除所有資料</h2>
+        <button onclick="clearAll()">清除 localStorage</button>
+        <div id="clearResult" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>5. 模擬登入並跳轉</h2>
+        <button onclick="simulateLogin()">模擬登入並跳轉到 products.html</button>
+        <div id="loginResult" class="result"></div>
+    </div>
+
+    <script>
+        function testLocalStorage() {
+            const result = document.getElementById('storageTest');
+            try {
+                localStorage.setItem('__test__', 'test_value');
+                const value = localStorage.getItem('__test__');
+                localStorage.removeItem('__test__');
+                
+                if (value === 'test_value') {
+                    result.innerHTML = '<span class="success">✅ localStorage 運作正常</span>';
+                } else {
+                    result.innerHTML = '<span class="error">❌ localStorage 讀取失敗</span>';
+                }
+            } catch (e) {
+                result.innerHTML = `<span class="error">❌ localStorage 錯誤: ${e.message}</span>`;
+            }
+        }
+
+        function saveTestData() {
+            const result = document.getElementById('saveResult');
+            try {
+                localStorage.setItem('username', 'testUser');
+                localStorage.setItem('jwtToken', 'test_token_123456');
+                result.innerHTML = '<span class="success">✅ 已儲存 username 和 jwtToken</span>';
+            } catch (e) {
+                result.innerHTML = `<span class="error">❌ 儲存失敗: ${e.message}</span>`;
+            }
+        }
+
+        function readData() {
+            const result = document.getElementById('readResult');
+            const username = localStorage.getItem('username');
+            const token = localStorage.getItem('jwtToken');
+            
+            result.innerHTML = `
+                <div><strong>username:</strong> ${username || '<span class="error">未找到</span>'}</div>
+                <div><strong>jwtToken:</strong> ${token || '<span class="error">未找到</span>'}</div>
+                <div><strong>有 username?</strong> ${!!username ? '<span class="success">是</span>' : '<span class="error">否</span>'}</div>
+                <div><strong>有 jwtToken?</strong> ${!!token ? '<span class="success">是</span>' : '<span class="error">否</span>'}</div>
+            `;
+        }
+
+        function clearAll() {
+            const result = document.getElementById('clearResult');
+            localStorage.clear();
+            result.innerHTML = '<span class="success">✅ 已清除所有 localStorage 資料</span>';
+        }
+
+        function simulateLogin() {
+            const result = document.getElementById('loginResult');
+            
+            // 儲存測試資料
+            localStorage.setItem('username', 'testUser');
+            localStorage.setItem('jwtToken', 'test_token_123456');
+            
+            // 確認儲存
+            const saved = localStorage.getItem('username');
+            
+            if (saved) {
+                result.innerHTML = '<span class="success">✅ 資料已儲存，3 秒後跳轉...</span>';
+                setTimeout(() => {
+                    window.location.href = '/products.html';
+                }, 3000);
+            } else {
+                result.innerHTML = '<span class="error">❌ 資料儲存失敗</span>';
+            }
+        }
+
+        // 頁面載入時自動執行測試
+        window.addEventListener('DOMContentLoaded', () => {
+            console.log('測試頁面載入完成');
+            readData();
+        });
+    </script>
+</body>
+</html>
