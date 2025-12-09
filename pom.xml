@@ -22,12 +22,12 @@
 		<relativePath/>
 	</parent>
 	
-	<!-- 專案基本資訊 -->
-	<groupId>dev.backend</groupId>
-	<artifactId>demo</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-	<name>demo</name>
-	<description>Demo project for Spring Boot</description>
+	<!-- 專案基本資訊（Maven 座標：用於唯一識別此專案） -->
+	<groupId>dev.backend</groupId>           <!-- 群組 ID：通常是公司/組織的反向域名，如 com.google -->
+	<artifactId>demo</artifactId>            <!-- 專案 ID：專案名稱，整個群組中唯一 -->
+	<version>0.0.1-SNAPSHOT</version>        <!-- 版本號：SNAPSHOT 表示開發中版本，非正式發布 -->
+	<name>demo</name>                        <!-- 專案顯示名稱 -->
+	<description>Demo project for Spring Boot</description>  <!-- 專案描述 -->
 	<url/>
 	<licenses>
 		<license/>
@@ -42,9 +42,9 @@
 		<url/>
 	</scm>
 	
-	<!-- 專案屬性設定 -->
+	<!-- 專案屬性設定（可在此定義變數，供下方 <dependencies> 使用） -->
 	<properties>
-		<java.version>21</java.version>
+		<java.version>21</java.version>  <!-- 指定專案使用的 Java 版本（JDK 21） -->
 	</properties>
 	
 	<!-- 相依套件清單 -->
@@ -71,14 +71,15 @@
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
-			<optional>true</optional>
+			<optional>true</optional>  <!-- optional=true：此依賴僅編譯時使用，不會打包進最終 JAR -->
 		</dependency>
 
 		<!-- Spring Boot Configuration Processor：為自定義配置屬性生成元數據 -->
+		<!-- 說明：讓 IDE 能在 application.properties 中自動完成自定義屬性（如 jwt.secret） -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-configuration-processor</artifactId>
-			<optional>true</optional>
+			<optional>true</optional>  <!-- 僅在開發時需要，不打包到最終應用中 -->
 		</dependency>
 
 		<!-- Spring Security：提供密碼加密等安全功能 -->
@@ -91,40 +92,46 @@
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
-			<scope>runtime</scope>
+			<scope>runtime</scope>  <!-- scope=runtime：僅在執行時需要，編譯時不需要此 JAR -->
 		</dependency>
 
 		<!-- Spring Boot 測試工具 -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
-			<scope>test</scope>
+			<scope>test</scope>  <!-- scope=test：僅在執行測試時使用，不會打包到正式應用中 -->
 		</dependency>
 
 		<!-- JWT 函式庫：用於生成和驗證 JWT token -->
+		<!-- 說明：JWT 需要三個依賴配合使用 -->
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
 			<artifactId>jjwt-api</artifactId>
-			<version>0.12.5</version>
+			<version>0.12.5</version>  <!-- API 介面：提供 JWT 的公開 API（編譯時需要） -->
 		</dependency>
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
 			<artifactId>jjwt-impl</artifactId>
 			<version>0.12.5</version>
-			<scope>runtime</scope>
+			<scope>runtime</scope>  <!-- 實作類別：JWT API 的具體實現（僅執行時需要） -->
 		</dependency>
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
 			<artifactId>jjwt-jackson</artifactId>
 			<version>0.12.5</version>
-			<scope>runtime</scope>
+			<scope>runtime</scope>  <!-- JSON 處理：使用 Jackson 進行 JSON 序列化/反序列化 -->
 		</dependency>
 	</dependencies>
 
-	<!-- 建置設定 -->
+	<!-- 建置設定（定義如何編譯、打包專案） -->
 	<build>
 		<plugins>
 			<!-- Spring Boot Maven 外掛：用於打包和執行應用程式 -->
+			<!-- 功能：
+			     1. 將專案打包成可執行的 JAR（包含所有依賴）
+			     2. 提供 mvn spring-boot:run 指令直接執行應用
+			     3. 處理 Lombok 等編譯時工具
+			-->
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
