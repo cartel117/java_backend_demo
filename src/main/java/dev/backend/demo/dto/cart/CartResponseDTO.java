@@ -5,6 +5,7 @@ import java.util.List;
 
 /**
  * 購物車回應 DTO
+ * 用於接收前端傳來的登入資料
  */
 public class CartResponseDTO {
     private Long cartId;

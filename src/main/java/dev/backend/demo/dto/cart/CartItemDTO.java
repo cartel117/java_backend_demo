@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 
 /**
  * 購物車項目 DTO
+ * 用於接收前端傳來的登入資料
  */
 public class CartItemDTO {
     private Long cartItemId;

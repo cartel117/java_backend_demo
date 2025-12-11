@@ -2,6 +2,8 @@ package dev.backend.demo.service;
 
 import dev.backend.demo.dto.cart.CartItemDTO;
 import dev.backend.demo.dto.cart.CartResponseDTO;
+import dev.backend.demo.exception.InvalidOperationException;
+import dev.backend.demo.exception.ResourceNotFoundException;
 import dev.backend.demo.model.Cart;
 import dev.backend.demo.model.CartItem;
 import dev.backend.demo.model.Product;
@@ -49,9 +51,17 @@ public class CartService {
      * 加入商品到購物車
      */
     public CartResponseDTO addToCart(Long userId, Long productId, Integer quantity) {
+        // 驗證數量
+        if (quantity == null || quantity <= 0) {
+            throw new InvalidOperationException("商品數量必須大於 0");
+        }
+        if (quantity > 999) {
+            throw new InvalidOperationException("商品數量不能超過 999");
+        }
+        
         // 驗證商品是否存在
         Product product = productRepository.findById(productId)
-            .orElseThrow(() -> new RuntimeException("商品不存在"));
+            .orElseThrow(() -> new ResourceNotFoundException("商品不存在：ID = " + productId));
         
         // 取得或建立購物車
         Cart cart = getOrCreateCart(userId);
@@ -93,7 +103,7 @@ public class CartService {
             .map(item -> {
                 // 手動載入 Product 以避免 LazyInitializationException
                 Product product = productRepository.findById(item.getProductId())
-                    .orElseThrow(() -> new RuntimeException("商品不存在: " + item.getProductId()));
+                    .orElseThrow(() -> new ResourceNotFoundException("商品不存在：ID = " + item.getProductId()));
                 
                 return new CartItemDTO(
                     item.getCartItemId(),
@@ -121,13 +131,24 @@ public class CartService {
      * 更新商品數量
      */
     public CartResponseDTO updateQuantity(Long userId, Long productId, Integer quantity) {
+        // 驗證數量
+        if (quantity == null) {
+            throw new InvalidOperationException("商品數量不能為空");
+        }
+        if (quantity < 0) {
+            throw new InvalidOperationException("商品數量不能小於 0");
+        }
+        if (quantity > 999) {
+            throw new InvalidOperationException("商品數量不能超過 999");
+        }
+        
         Cart cart = cartRepository.findByUserId(userId)
-            .orElseThrow(() -> new RuntimeException("購物車不存在"));
+            .orElseThrow(() -> new ResourceNotFoundException("購物車不存在：User ID = " + userId));
         
         CartItem cartItem = cartItemRepository.findByCartIdAndProductId(cart.getCartId(), productId)
-            .orElseThrow(() -> new RuntimeException("商品不在購物車中"));
+            .orElseThrow(() -> new ResourceNotFoundException("商品不在購物車中：Product ID = " + productId));
         
-        if (quantity <= 0) {
+        if (quantity == 0) {
             cartItemRepository.delete(cartItem);
         } else {
             cartItem.setQuantity(quantity);
@@ -142,10 +163,10 @@ public class CartService {
      */
     public CartResponseDTO removeFromCart(Long userId, Long productId) {
         Cart cart = cartRepository.findByUserId(userId)
-            .orElseThrow(() -> new RuntimeException("購物車不存在"));
+            .orElseThrow(() -> new ResourceNotFoundException("購物車不存在：User ID = " + userId));
         
         CartItem cartItem = cartItemRepository.findByCartIdAndProductId(cart.getCartId(), productId)
-            .orElseThrow(() -> new RuntimeException("商品不在購物車中"));
+            .orElseThrow(() -> new ResourceNotFoundException("商品不在購物車中：Product ID = " + productId));
         
         cartItemRepository.delete(cartItem);
         

@@ -52,19 +52,22 @@ public class AuthController {
      * 使用者登入 API
      * POST /api/auth/login
      */
-    @PostMapping("/login")
+    @PostMapping("/login")//設定這個方法處理對 "/login" 路徑的 HTTP POST 請求
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+        // @RequestBody 註解告訴 Spring 將請求 Body (通常是 JSON) 自動轉換為 LoginRequest 物件
         try {
             // 先取得使用者資訊
+            // 嘗試通過使用者名稱從資料庫或其他儲存庫中查找使用者
             User user = userService.findByUsername(request.getUsername());
             
             if (user == null) {
+                //如果使用者不存在，返回 UNAUTHORIZED 錯誤，但不透露是使用者名稱還是密碼錯誤
                 Map<String, Object> response = new HashMap<>();
                 response.put("success", false);
                 response.put("message", "用戶名或密碼錯誤");
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
             }
-            
+            // 驗證密碼。userService 內部會處理密碼的雜湊比對 (e.g., 使用 BCrypt)
             boolean isValid = userService.verifyPassword(request.getUsername(), request.getPassword());
             
             Map<String, Object> response = new HashMap<>();
@@ -79,11 +82,13 @@ public class AuthController {
                 response.put("token", token);
                 return ResponseEntity.ok(response);
             } else {
+                //密碼驗證失敗，同樣返回 UNAUTHORIZED，並使用與使用者不存在時相同的訊息，以防洩露資訊
                 response.put("success", false);
                 response.put("message", "用戶名或密碼錯誤");
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
             }
         } catch (Exception e) {
+            //處理在登入過程中發生的任何意外錯誤 (例如資料庫連線問題、服務層異常)
             Map<String, Object> response = new HashMap<>();
             response.put("success", false);
             response.put("message", "登入失敗：" + e.getMessage());

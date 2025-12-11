@@ -2,8 +2,10 @@ package dev.backend.demo.controller;
 
 import dev.backend.demo.dto.cart.AddToCartRequest;
 import dev.backend.demo.dto.cart.CartResponseDTO;
+import dev.backend.demo.exception.UnauthorizedException;
 import dev.backend.demo.service.CartService;
 import dev.backend.demo.util.JwtUtil;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -30,7 +32,7 @@ public class CartController {
      */
     private Long getUserIdFromToken(String authHeader) {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            throw new RuntimeException("無效的認證標頭");
+            throw new UnauthorizedException("無效的認證標頭，請先登入");
         }
         String token = authHeader.substring(7);
         // String username = jwtUtil.extractUsername(token);
@@ -54,15 +56,25 @@ public class CartController {
      * 加入商品到購物車
      * POST /api/cart
      */
+    // 處理 HTTP POST 請求的對映。如果類別級別沒有指定路徑，則對映到根路徑
     @PostMapping
     public ResponseEntity<Map<String, Object>> addToCart(
+            // 從 HTTP Header 中獲取名為 "Authorization" 的值，通常包含 JWT 等認證 Token
             @RequestHeader("Authorization") String authHeader,
-            @RequestBody AddToCartRequest request) {
-        
+            // 1. @RequestBody: 將 HTTP 請求的 JSON 主體轉換為 AddToCartRequest 物件。
+            // 2. @Valid: 觸發 Bean Validation 機制，檢查 AddToCartRequest 內的欄位是否符合註解定義的約束（例如：productId 必須非空）。
+            @Valid @RequestBody AddToCartRequest request) {
+
+        // 步驟 1: 認證與授權 - 從 Token 中提取使用者 ID
+        // 呼叫輔助方法解析 Authorization Token，以確定是哪個使用者在操作
         Long userId = getUserIdFromToken(authHeader);
+        // 步驟 2: 業務邏輯處理 - 將商品加入購物車
+        // 呼叫 Service 層方法執行核心業務邏輯
         CartResponseDTO cart = cartService.addToCart(
-            userId, 
-            request.getProductId(), 
+            userId, // 當前操作的使用者 ID
+            request.getProductId(), // 請求中指定要加入的商品 ID
+            // 檢查請求中的數量 (quantity) 是否為 null。
+            // 如果是 null，預設數量為 1；否則使用請求提供的數量。
             request.getQuantity() != null ? request.getQuantity() : 1
         );
         

@@ -102,6 +102,13 @@
 			<scope>test</scope>  <!-- scope=test：僅在執行測試時使用，不會打包到正式應用中 -->
 		</dependency>
 
+		<!-- Spring Boot Validation：提供 Bean Validation (JSR-303) 驗證功能 -->
+		<!-- 說明：用於 DTO 驗證，支援 @NotNull, @Min, @Max, @Valid 等註解 -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-validation</artifactId>
+		</dependency>
+
 		<!-- JWT 函式庫：用於生成和驗證 JWT token -->
 		<!-- 說明：JWT 需要三個依賴配合使用 -->
 		<dependency>

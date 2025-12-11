@@ -1,5 +1,6 @@
 package dev.backend.demo.service;
 
+import dev.backend.demo.exception.ResourceNotFoundException;
 import dev.backend.demo.model.Product;
 import dev.backend.demo.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,10 +28,12 @@ public class ProductService {
     /**
      * 根據 ID 取得產品
      * @param id 產品 ID
-     * @return 產品物件，如果不存在則回傳 null
+     * @return 產品物件
+     * @throws ResourceNotFoundException 如果產品不存在
      */
     public Product getProductById(Long id) {
-        return productRepository.findById(id).orElse(null);
+        return productRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("產品不存在：ID = " + id));
     }
     
     /**
@@ -45,8 +48,12 @@ public class ProductService {
     /**
      * 刪除產品
      * @param id 產品 ID
+     * @throws ResourceNotFoundException 如果產品不存在
      */
     public void deleteProduct(Long id) {
+        if (!productRepository.existsById(id)) {
+            throw new ResourceNotFoundException("產品不存在，無法刪除：ID = " + id);
+        }
         productRepository.deleteById(id);
     }
     
