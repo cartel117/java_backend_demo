@@ -30,6 +30,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         
         String requestURI = request.getRequestURI();
+        
+        // 跳過不需要 JWT 驗證的路徑（靜態資源和公開頁面）
+        if (shouldNotFilter(request)) {
+            logger.debug("跳過 JWT 驗證: " + requestURI);
+            filterChain.doFilter(request, response);
+            return;
+        }
+        
         logger.info("=== JWT Filter: 處理請求 " + requestURI + " ===");
         
         // 從請求頭中獲取 Authorization
@@ -70,11 +78,35 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             } else {
                 logger.error("❌ Token 驗證失敗");
             }
-        } else if (username == null) {
+        } else if (username == null && authorizationHeader != null) {
             logger.warn("❌ 未能從 token 提取使用者名稱");
         }
         
         // 繼續執行過濾鏈
         filterChain.doFilter(request, response);
+    }
+    
+    /**
+     * 判斷是否應該跳過此過濾器
+     * 對於靜態資源和公開頁面，不需要 JWT 驗證
+     */
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getRequestURI();
+        
+        // 不需要 JWT 驗證的路徑
+        return path.equals("/") ||
+               path.equals("/index.html") ||
+               path.equals("/login.html") ||
+               path.equals("/register.html") ||
+               path.equals("/shop.html") ||
+               path.equals("/products.html") ||
+               path.equals("/test-storage.html") ||
+               path.startsWith("/api/auth/") ||
+               path.endsWith(".css") ||
+               path.endsWith(".js") ||
+               path.endsWith(".html") ||
+               path.startsWith("/static/") ||
+               path.equals("/favicon.ico");
     }
 }

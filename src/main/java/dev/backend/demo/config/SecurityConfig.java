@@ -15,20 +15,29 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
  * Spring Security 安全配置
  * 配置哪些路徑需要認證，哪些可以公開訪問
  */
-@Configuration
-@EnableWebSecurity
+@Configuration // 標記這個類是一個配置類，會被 Spring 容器掃描
+@EnableWebSecurity // 啟用 Spring Security 的 Web 安全功能
 public class SecurityConfig {
 
     @Autowired
+    // 注入自訂的 JWT 認證過濾器，用於從請求中解析和驗證 JWT
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     /**
      * 配置 HTTP 安全規則
+     * 這是 Spring Security 6 之後主要的配置方法，用於定義安全過濾鏈。
      */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable()) // 關閉 CSRF 保護（開發階段，生產環境建議啟用）
+            // 1. 關閉 CSRF 保護：
+            // 由於使用的是 JWT 和 RESTful API，通常不需要基於 Session 的 CSRF 保護。
+            // (開發階段，生產環境建議審慎評估是否需要開啟或使用其他方式防護)
+            .csrf(csrf -> csrf.disable()) 
+            // 2. 啟用 CORS 配置：
+            // 允許跨來源資源共享，通常與 Spring MVC 的 CORS 配置一起使用。
+            .cors(cors -> {}) 
+            // 3. 配置授權規則
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
                     "/",

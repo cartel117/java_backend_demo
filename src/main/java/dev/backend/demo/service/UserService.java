@@ -35,6 +35,15 @@ public class UserService {
     }
     
     /**
+     * 根據使用者名稱查詢使用者
+     * @param username 使用者名稱
+     * @return 使用者物件，如果不存在則回傳 null
+     */
+    public User findByUsername(String username) {
+        return userRepository.findByUsername(username);
+    }
+    
+    /**
      * 驗證使用者登入
      * @param username 使用者名稱
      * @param rawPassword 明文密碼

@@ -55,17 +55,28 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         try {
+            // 先取得使用者資訊
+            User user = userService.findByUsername(request.getUsername());
+            
+            if (user == null) {
+                Map<String, Object> response = new HashMap<>();
+                response.put("success", false);
+                response.put("message", "用戶名或密碼錯誤");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+            }
+            
             boolean isValid = userService.verifyPassword(request.getUsername(), request.getPassword());
             
             Map<String, Object> response = new HashMap<>();
             if (isValid) {
-                // ✅ 登入成功，生成 JWT token
-                String token = jwtUtil.generateToken(request.getUsername());
+                // ✅ 登入成功，生成包含 userId 的 JWT token
+                String token = jwtUtil.generateToken(user.getUsername(), user.getId());
                 
                 response.put("success", true);
                 response.put("message", "登入成功");
-                response.put("username", request.getUsername());
-                response.put("token", token); // 返回 JWT token
+                response.put("username", user.getUsername());
+                response.put("userId", user.getId());
+                response.put("token", token);
                 return ResponseEntity.ok(response);
             } else {
                 response.put("success", false);

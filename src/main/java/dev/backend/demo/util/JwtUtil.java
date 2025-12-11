@@ -105,4 +105,21 @@ public class JwtUtil {
         byte[] keyBytes = secret.getBytes(StandardCharsets.UTF_8);
         return Keys.hmacShaKeyFor(keyBytes);
     }
+
+    /**
+     * 從 token 中提取使用者 ID
+     */
+    public Long extractUserId(String token) {
+        Claims claims = extractAllClaims(token);
+        return claims.get("userId", Long.class);
+    }
+
+    /**
+     * 生成包含使用者 ID 的 token
+     */
+    public String generateToken(String username, Long userId) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("userId", userId);
+        return createToken(claims, username);
+    }
 }
