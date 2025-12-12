@@ -3,6 +3,7 @@ package dev.backend.demo.service;
 import dev.backend.demo.exception.ResourceNotFoundException;
 import dev.backend.demo.model.Product;
 import dev.backend.demo.repository.ProductRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -11,6 +12,7 @@ import java.util.List;
  * 產品服務類別
  * 處理產品相關的業務邏輯
  */
+@Slf4j
 @Service
 public class ProductService {
     
@@ -22,7 +24,10 @@ public class ProductService {
      * @return 所有產品列表
      */
     public List<Product> getAllProducts() {
-        return productRepository.findAll();
+        log.debug("取得所有產品");
+        List<Product> products = productRepository.findAll();
+        log.info("查詢到 {} 個產品", products.size());
+        return products;
     }
     
     /**
@@ -32,8 +37,12 @@ public class ProductService {
      * @throws ResourceNotFoundException 如果產品不存在
      */
     public Product getProductById(Long id) {
+        log.debug("查詢產品: productId={}", id);
         return productRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("產品不存在：ID = " + id));
+            .orElseThrow(() -> {
+                log.error("產品不存在: productId={}", id);
+                return new ResourceNotFoundException("產品不存在：ID = " + id);
+            });
     }
     
     /**
@@ -51,10 +60,15 @@ public class ProductService {
      * @throws ResourceNotFoundException 如果產品不存在
      */
     public void deleteProduct(Long id) {
+        log.info("刪除產品: productId={}", id);
+        
         if (!productRepository.existsById(id)) {
+            log.error("產品不存在，無法刪除: productId={}", id);
             throw new ResourceNotFoundException("產品不存在，無法刪除：ID = " + id);
         }
+        
         productRepository.deleteById(id);
+        log.info("產品刪除成功: productId={}", id);
     }
     
     /**

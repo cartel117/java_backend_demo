@@ -6,6 +6,7 @@ import dev.backend.demo.exception.UnauthorizedException;
 import dev.backend.demo.service.CartService;
 import dev.backend.demo.util.JwtUtil;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +18,7 @@ import java.util.Map;
  * 購物車 API 控制器
  * 使用資料庫持久化購物車資料
  */
+@Slf4j
 @RestController
 @RequestMapping("/api/cart")
 public class CartController {
