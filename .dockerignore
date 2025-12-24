@@ -1,0 +1,68 @@
+# ============================================
+# .dockerignore
+# ============================================
+# 
+# 用途：指定哪些檔案不應該被複製到 Docker 映像檔中
+# 好處：
+# 1. 減少映像檔大小
+# 2. 加速建置過程
+# 3. 避免洩露敏感資訊
+# 4. 防止不必要的檔案污染容器
+# ============================================
+
+# Maven 建置輸出
+target/
+!target/*.jar
+
+# IDE 設定檔
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+.project
+.classpath
+.settings/
+
+# 作業系統檔案
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Git 相關
+.git/
+.gitignore
+.gitattributes
+
+# 日誌檔案
+*.log
+logs/
+
+# 測試報告
+test-output/
+coverage/
+
+# Docker 相關
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# 文件檔案
+README.md
+*.md
+docs/
+
+# 環境變數檔案（可能包含敏感資訊）
+.env
+.env.local
+.env.*.local
+
+# Node modules (如果有前端)
+node_modules/
+
+# 臨時檔案
+tmp/
+temp/
+*.tmp

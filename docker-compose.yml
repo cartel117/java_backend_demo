@@ -1,0 +1,98 @@
+# ============================================
+# Docker Compose Configuration
+# ============================================
+# 
+# 用途：
+# 1. 同時啟動應用程式和 PostgreSQL 資料庫
+# 2. 自動配置網路連線
+# 3. 管理環境變數
+# 4. 資料持久化
+# 
+# 使用方式：
+# - 啟動所有服務：docker-compose up -d
+# - 停止所有服務：docker-compose down
+# - 查看日誌：docker-compose logs -f
+# - 重新建置：docker-compose up -d --build
+# ============================================
+
+version: '3.8'
+
+services:
+  # ============================================
+  # PostgreSQL 資料庫
+  # ============================================
+  postgres:
+    image: postgres:15-alpine
+    container_name: demo-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: demo
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      # 資料持久化：將資料庫資料存儲在宿主機
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - demo-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================
+  # Spring Boot 應用程式
+  # ============================================
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: demo-app
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      # 資料庫連線設定（使用 Docker 內部網路）
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/demo
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      
+      # JWT 設定
+      JWT_SECRET: your-production-secret-key-please-change-this-in-production
+      JWT_EXPIRATION: 86400000
+      
+      # JPA 設定
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: "true"
+      
+      # 日誌設定
+      LOGGING_LEVEL_ROOT: INFO
+      LOGGING_LEVEL_DEV_BACKEND_DEMO: DEBUG
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - demo-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 40s
+
+# ============================================
+# 網路設定
+# ============================================
+networks:
+  demo-network:
+    driver: bridge
+
+# ============================================
+# 資料卷設定
+# ============================================
+volumes:
+  postgres-data:
+    driver: local
