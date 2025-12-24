@@ -28,7 +28,7 @@ services:
     environment:
       POSTGRES_DB: demo
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_PASSWORD: postgres123
       PGDATA: /var/lib/postgresql/data/pgdata
     ports:
       - "5432:5432"
@@ -58,7 +58,7 @@ services:
       # 資料庫連線設定（使用 Docker 內部網路）
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/demo
       SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres123
       
       # JWT 設定
       JWT_SECRET: your-production-secret-key-please-change-this-in-production
