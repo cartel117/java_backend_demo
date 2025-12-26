@@ -50,6 +50,8 @@ public class SecurityConfig {
                     "/products.html",       // 允許訪問管理頁面
                     "/test-storage.html",   // 允許測試頁面
                     "/api/auth/**",         // 允許訪問認證 API
+                    "/health",              // 允許健康檢查端點
+                    "/health/**",           // 允許所有健康檢查相關端點
                     "/static/**",           // 允許所有靜態資源
                     "/*.css",               // 允許所有 CSS 檔案
                     "/*.js",                // 允許所有 JS 檔案
