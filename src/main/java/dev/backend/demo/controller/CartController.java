@@ -5,6 +5,9 @@ import dev.backend.demo.dto.cart.CartResponseDTO;
 import dev.backend.demo.exception.UnauthorizedException;
 import dev.backend.demo.service.CartService;
 import dev.backend.demo.util.JwtUtil;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +24,8 @@ import java.util.Map;
 @Slf4j
 @RestController
 @RequestMapping("/api/cart")
+@Tag(name = "購物車 API", description = "購物車管理相關 API（需要 JWT 認證）")
+@SecurityRequirement(name = "Bearer Authentication")
 public class CartController {
     
     @Autowired

@@ -1,6 +1,12 @@
 package dev.backend.demo.controller;
 
 import dev.backend.demo.repository.ProductRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -24,6 +30,7 @@ import java.util.Map;
  */
 @Slf4j
 @RestController
+@Tag(name = "健康檢查 API", description = "系統健康狀態檢查 API（無需認證）")
 public class HealthController {
     
     @Autowired
@@ -43,6 +50,26 @@ public class HealthController {
      * - 快速監控
      */
     @GetMapping("/health")
+    @Operation(
+        summary = "基本健康檢查",
+        description = "快速檢查應用程式是否正常運行，不檢查資料庫連接。適合 Docker HEALTHCHECK 和 Load Balancer。"
+    )
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "200",
+            description = "應用程式正常運行",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(value = """
+                    {
+                      "application": "demo",
+                      "status": "UP",
+                      "timestamp": "2025-12-26T07:25:26.339Z"
+                    }
+                    """)
+            )
+        )
+    })
     public ResponseEntity<Map<String, Object>> health() {
         log.debug("Health check: 基本健康檢查");
         

@@ -109,6 +109,16 @@
 			<artifactId>spring-boot-starter-validation</artifactId>
 		</dependency>
 
+		<!-- SpringDoc OpenAPI：自動生成 Swagger/OpenAPI 文檔 -->
+		<!-- 說明：整合 OpenAPI 3.0 規範，自動掃描 Controller 生成 API 文檔 -->
+		<!-- 功能：提供 Swagger UI 互動式測試介面，支援 JWT 認證測試 -->
+		<!-- 訪問路徑：http://localhost:8080/swagger-ui.html -->
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+			<version>2.3.0</version>  <!-- 版本 2.3.0 支援 Spring Boot 3.x -->
+		</dependency>
+
 		<!-- JWT 函式庫：用於生成和驗證 JWT token -->
 		<!-- 說明：JWT 需要三個依賴配合使用 -->
 		<dependency>

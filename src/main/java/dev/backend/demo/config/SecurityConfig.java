@@ -52,6 +52,10 @@ public class SecurityConfig {
                     "/api/auth/**",         // 允許訪問認證 API
                     "/health",              // 允許健康檢查端點
                     "/health/**",           // 允許所有健康檢查相關端點
+                    "/swagger-ui/**",       // 允許 Swagger UI 靜態資源
+                    "/swagger-ui.html",     // 允許 Swagger UI 頁面
+                    "/v3/api-docs/**",      // 允許 OpenAPI 文檔
+                    "/api-docs/**",         // 允許 API 文檔
                     "/static/**",           // 允許所有靜態資源
                     "/*.css",               // 允許所有 CSS 檔案
                     "/*.js",                // 允許所有 JS 檔案

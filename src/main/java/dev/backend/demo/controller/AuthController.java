@@ -5,6 +5,12 @@ import dev.backend.demo.service.UserService;
 import dev.backend.demo.dto.RegisterRequest;
 import dev.backend.demo.dto.LoginRequest;
 import dev.backend.demo.util.JwtUtil;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,6 +27,7 @@ import java.util.Map;
 @Slf4j
 @RestController // RESTful API 控制器
 @RequestMapping("/api/auth") // 基礎路徑為 /api/auth
+@Tag(name = "認證 API", description = "用戶註冊與登入相關 API")
 public class AuthController {
     
     @Autowired // 自動注入 UserService
@@ -34,6 +41,41 @@ public class AuthController {
      * POST /api/auth/register
      */
     @PostMapping("/register")
+    //summary: 這是 API 的「標題」，通常簡短地說明這個 API 是做什麼的。
+    //description: 這是 API 的「詳細說明」。您可以在這裡補充業務邏輯、注意事項或背後執行的細節。
+    @Operation(
+        summary = "用戶註冊",
+        description = "註冊新用戶帳號。用戶名和 Email 必須唯一，密碼會使用 BCrypt 加密儲存。"
+    )
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "200",
+            description = "註冊成功",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(value = """
+                    {
+                      "success": true,
+                      "message": "註冊成功",
+                      "username": "cartel117"
+                    }
+                    """)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "400",
+            description = "註冊失敗（用戶名或 Email 已存在）",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(value = """
+                    {
+                      "success": false,
+                      "message": "註冊失敗：用戶名已存在"
+                    }
+                    """)
+            )
+        )
+    })
     public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
         log.info("API: 使用者註冊請求, username={}", request.getUsername());
         
@@ -61,6 +103,44 @@ public class AuthController {
      * POST /api/auth/login
      */
     @PostMapping("/login")//設定這個方法處理對 "/login" 路徑的 HTTP POST 請求
+    @Operation(
+        summary = "用戶登入",
+        description = "使用用戶名和密碼登入，成功後返回 JWT Token。Token 有效期為 24 小時。"
+    )
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "200",
+            description = "登入成功",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(value = """
+                    {
+                      "success": true,
+                      "message": "登入成功",
+                      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                      "user": {
+                        "id": 1,
+                        "username": "cartel117",
+                        "email": "cartel@example.com"
+                      }
+                    }
+                    """)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "登入失敗（用戶名或密碼錯誤）",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(value = """
+                    {
+                      "success": false,
+                      "message": "用戶名或密碼錯誤"
+                    }
+                    """)
+            )
+        )
+    })
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         // @RequestBody 註解告訴 Spring 將請求 Body (通常是 JSON) 自動轉換為 LoginRequest 物件
         log.info("API: 使用者登入請求, username={}", request.getUsername());

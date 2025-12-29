@@ -2,6 +2,14 @@ package dev.backend.demo.controller;
 
 import dev.backend.demo.model.Product;
 import dev.backend.demo.service.ProductService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +28,12 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/api/products")  // RESTful: 資源為複數名詞
+// @Tag: 在 Swagger UI 中將這個 Controller 的所有 API 分組到「產品 API」標籤下
+// 方便在文檔中分類查看，提供標籤名稱和描述
+@Tag(name = "產品 API", description = "產品管理相關 API（需要 JWT 認證）")
+// @SecurityRequirement: 標記這個 Controller 的所有 API 都需要 JWT 認證
+// 在 Swagger UI 中會顯示 🔒 鎖頭圖示，提醒使用者需要先登入取得 Token
+@SecurityRequirement(name = "Bearer Authentication")
 public class ProductController {
     
     @Autowired
@@ -35,6 +49,40 @@ public class ProductController {
      * - HTTP 200 OK 表示成功
      */
     @GetMapping
+    // @Operation: 定義這個 API 的基本資訊，在 Swagger UI 中顯示
+    // summary: 簡短摘要（顯示在 API 列表）
+    // description: 詳細說明（展開後顯示）
+    @Operation(
+        summary = "查詢所有產品",
+        description = "取得所有產品列表，可選擇性地根據分類 ID 篩選產品。需要 JWT Token 認證。"
+    )
+    // @ApiResponses: 定義可能的回應狀態碼和內容
+    // 讓 API 使用者知道會收到什麼樣的回應
+    @ApiResponses({
+        // HTTP 200: 成功回應
+        @ApiResponse(
+            responseCode = "200",
+            description = "查詢成功",
+            content = @Content(
+                mediaType = "application/json",  // 回應格式為 JSON
+                // 提供範例 JSON，方便測試時參考
+                examples = @ExampleObject(value = """
+                    [
+                      {
+                        "id": 1,
+                        "name": "iPhone 15 Pro",
+                        "price": 35900.00,
+                        "categoryId": 1,
+                        "imageUrl": "https://example.com/iphone15.jpg",
+                        "description": "最新款 iPhone"
+                      }
+                    ]
+                    """)
+            )
+        ),
+        // HTTP 401: 未認證錯誤
+        @ApiResponse(responseCode = "401", description = "未認證（需要 JWT Token）")
+    })
     public ResponseEntity<List<Product>> getAllProducts(HttpSession session) {
         // 驗證使用者登入狀態
         if (!isAuthenticated(session)) {
