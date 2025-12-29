@@ -5,7 +5,6 @@ import dev.backend.demo.dto.cart.CartResponseDTO;
 import dev.backend.demo.exception.UnauthorizedException;
 import dev.backend.demo.service.CartService;
 import dev.backend.demo.util.JwtUtil;
-import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;

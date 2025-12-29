@@ -1,5 +1,6 @@
 package dev.backend.demo.config;
 
+import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
@@ -71,6 +72,9 @@ public class OpenApiConfig {
 
         // 3. 回傳完整的 OpenAPI 配置
         return new OpenAPI()
+                // 將 SecurityScheme 加入到 components 中，並命名為 "Bearer Authentication"
+                .components(new Components()
+                        .addSecuritySchemes("Bearer Authentication", securityScheme))
                 // 設定 API 的基本資訊
                 .info(new Info()
                         .title("電商系統後端 API")
