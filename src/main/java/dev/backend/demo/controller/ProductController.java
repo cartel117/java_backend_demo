@@ -12,8 +12,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import jakarta.servlet.http.HttpSession;
+
 import java.util.List;
 
 /**
@@ -24,6 +25,11 @@ import java.util.List;
  * - URL 代表資源，使用名詞而非動詞
  * - 使用標準 HTTP 狀態碼
  * - 資源的 ID 放在 URL 路徑中
+ * 
+ * 認證機制：
+ * - 所有端點都需要 JWT 認證（由 SecurityConfig 統一配置）
+ * - JwtAuthenticationFilter 會自動驗證 Token 並設定 SecurityContext
+ * - 如果認證失敗，Spring Security 會自動返回 401 Unauthorized
  */
 @RestController
 @RequestMapping("/api/products")  // RESTful: 資源為複數名詞
@@ -46,6 +52,11 @@ public class ProductController {
      * - 使用 GET 方法查詢資源集合
      * - 直接回傳資源陣列，不包裝在 response 物件中
      * - HTTP 200 OK 表示成功
+     * 
+     * 認證處理：
+     * - SecurityConfig 已配置 /api/products/** 需要認證
+     * - 如果沒有有效的 JWT Token，請求會在 Filter 層被攔截
+     * - Authentication 參數可選，用於需要取得當前使用者資訊時
      */
     @GetMapping
     // @Operation: 定義這個 API 的基本資訊，在 Swagger UI 中顯示
@@ -82,11 +93,12 @@ public class ProductController {
         // HTTP 401: 未認證錯誤
         @ApiResponse(responseCode = "401", description = "未認證（需要 JWT Token）")
     })
-    public ResponseEntity<List<Product>> getAllProducts(HttpSession session) {
-        // 驗證使用者登入狀態
-        if (!isAuthenticated(session)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
+    public ResponseEntity<List<Product>> getAllProducts(Authentication authentication) {
+        // 可選：記錄當前操作使用者（用於審計）
+        // if (authentication != null) {
+        //     String username = authentication.getName();
+        //     log.debug("User {} is fetching all products", username);
+        // }
         
         List<Product> products = productService.getAllProducts();
         return ResponseEntity.ok(products);
@@ -102,14 +114,7 @@ public class ProductController {
      * - HTTP 404 Not Found: 資源不存在
      */
     @GetMapping("/{id}")
-    public ResponseEntity<Product> getProductById(
-            @PathVariable Long id, 
-            HttpSession session) {
-        
-        if (!isAuthenticated(session)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-        
+    public ResponseEntity<Product> getProductById(@PathVariable Long id) {
         Product product = productService.getProductById(id);
         if (product == null) {
             return ResponseEntity.notFound().build();
@@ -128,14 +133,7 @@ public class ProductController {
      * - 回傳新建立的資源
      */
     @PostMapping
-    public ResponseEntity<Product> createProduct(
-            @RequestBody Product product, 
-            HttpSession session) {
-        
-        if (!isAuthenticated(session)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-        
+    public ResponseEntity<Product> createProduct(@RequestBody Product product) {
         Product createdProduct = productService.saveProduct(product);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdProduct);
     }
@@ -152,12 +150,7 @@ public class ProductController {
     @PutMapping("/{id}")
     public ResponseEntity<Product> updateProduct(
             @PathVariable Long id,
-            @RequestBody Product product,
-            HttpSession session) {
-        
-        if (!isAuthenticated(session)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
+            @RequestBody Product product) {
         
         Product existingProduct = productService.getProductById(id);
         if (existingProduct == null) {
@@ -182,12 +175,7 @@ public class ProductController {
     @PatchMapping("/{id}")
     public ResponseEntity<Product> partialUpdateProduct(
             @PathVariable Long id,
-            @RequestBody Product productUpdates,
-            HttpSession session) {
-        
-        if (!isAuthenticated(session)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
+            @RequestBody Product productUpdates) {
         
         Product existingProduct = productService.getProductById(id);
         if (existingProduct == null) {
@@ -225,14 +213,7 @@ public class ProductController {
      * - HTTP 404 Not Found: 資源不存在
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteProduct(
-            @PathVariable Long id, 
-            HttpSession session) {
-        
-        if (!isAuthenticated(session)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-        
+    public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
         Product product = productService.getProductById(id);
         if (product == null) {
             return ResponseEntity.notFound().build();
@@ -251,33 +232,9 @@ public class ProductController {
      * - 保持 URL 簡潔，篩選條件放在 query string
      */
     @GetMapping(params = "categoryId")
-    public ResponseEntity<List<Product>> getProductsByCategory(
-            @RequestParam Long categoryId,
-            HttpSession session) {
-        
-        if (!isAuthenticated(session)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-        
+    public ResponseEntity<List<Product>> getProductsByCategory(@RequestParam Long categoryId) {
         List<Product> products = productService.getProductsByCategoryId(categoryId);
         return ResponseEntity.ok(products);
     }
     
-    /**
-     * 檢查使用者是否已登入
-     * 改用 Spring Security 的認證機制（支援 JWT）
-     * @return true 如果已登入，否則 false
-     */
-    private boolean isAuthenticated(HttpSession session) {
-        // 優先使用 Spring Security 的認證（支援 JWT）
-        var authentication = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.isAuthenticated() && 
-            !"anonymousUser".equals(authentication.getPrincipal())) {
-            return true;
-        }
-        
-        // 備用方案：檢查 session（向後兼容）
-        String username = (String) session.getAttribute("username");
-        return username != null;
-    }
 }

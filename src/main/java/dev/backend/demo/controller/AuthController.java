@@ -43,6 +43,7 @@ public class AuthController {
     @PostMapping("/register")
     //summary: 這是 API 的「標題」，通常簡短地說明這個 API 是做什麼的。
     //description: 這是 API 的「詳細說明」。您可以在這裡補充業務邏輯、注意事項或背後執行的細節。
+    // === [Swagger Documentation Start] ===
     @Operation(
         summary = "用戶註冊",
         description = "註冊新用戶帳號。用戶名和 Email 必須唯一，密碼會使用 BCrypt 加密儲存。"
@@ -76,6 +77,7 @@ public class AuthController {
             )
         )
     })
+    // === [Swagger Documentation End] ===
     public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
         log.info("API: 使用者註冊請求, username={}", request.getUsername());
         
