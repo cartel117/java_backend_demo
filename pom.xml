@@ -153,6 +153,34 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
+
+			<!-- JaCoCo 程式碼覆蓋率工具 -->
+			<!-- 功能：
+			     1. 收集測試執行時的覆蓋率資料
+			     2. 生成 HTML 覆蓋率報告（target/site/jacoco/index.html）
+			     3. 提供行覆蓋率、分支覆蓋率等指標
+			-->
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>0.8.11</version>
+				<executions>
+					<!-- prepare-agent：在測試前啟動 JaCoCo 代理 -->
+					<execution>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+					<!-- report：測試後生成覆蓋率報告 -->
+					<execution>
+						<id>report</id>
+						<phase>test</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 

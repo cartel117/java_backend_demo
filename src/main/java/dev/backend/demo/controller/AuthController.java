@@ -90,13 +90,24 @@ public class AuthController {
             response.put("message", "註冊成功");
             response.put("username", user.getUsername());
             return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            log.error("API: 使用者註冊失敗, username={}, error={}", request.getUsername(), e.getMessage());
+            
+        } catch (IllegalArgumentException e) {
+            // 業務邏輯錯誤（使用者名稱或 email 重複）
+            log.warn("API: 使用者註冊失敗 - 業務邏輯錯誤, username={}, error={}", request.getUsername(), e.getMessage());
             
             Map<String, Object> response = new HashMap<>();
             response.put("success", false);
-            response.put("message", "註冊失敗：" + e.getMessage());
+            response.put("message", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            
+        } catch (RuntimeException e) {
+            // 系統錯誤（資料庫連線問題等）
+            log.error("API: 使用者註冊失敗 - 系統錯誤, username={}, error={}", request.getUsername(), e.getMessage());
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "系統錯誤，請稍後再試");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
     
