@@ -25,6 +25,9 @@ COPY pom.xml .
 COPY mvnw .
 COPY .mvn .mvn
 
+# 授予 mvnw 執行權限
+RUN chmod +x mvnw
+
 # 下載相依套件（此層會被快取，除非 pom.xml 改變）
 RUN ./mvnw dependency:go-offline
 
