@@ -92,13 +92,19 @@ public class AuthController {
             return ResponseEntity.ok(response);
             
         } catch (IllegalArgumentException e) {
-            // 業務邏輯錯誤（使用者名稱或 email 重複）
-            log.warn("API: 使用者註冊失敗 - 業務邏輯錯誤, username={}, error={}", request.getUsername(), e.getMessage());
+            log.warn("API: 使用者註冊失敗 - 業務邏輯錯誤, username={}, error={}", 
+                     request.getUsername(), e.getMessage());
             
             Map<String, Object> response = new HashMap<>();
             response.put("success", false);
             response.put("message", e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            
+            // 🔍 根據錯誤訊息判斷使用更精確的狀態碼
+            HttpStatus status = e.getMessage().contains("已存在") 
+                ? HttpStatus.CONFLICT  // 409 - 資源衝突
+                : HttpStatus.BAD_REQUEST;  // 400 - 其他輸入錯誤
+            
+            return ResponseEntity.status(status).body(response);
             
         } catch (RuntimeException e) {
             // 系統錯誤（資料庫連線問題等）
