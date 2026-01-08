@@ -13,6 +13,7 @@ public class CartItemDTO {
     private BigDecimal unitPrice;
     private Integer quantity;
     private BigDecimal subtotal;
+    private String imageUrl;
     
     public CartItemDTO() {}
     
@@ -24,6 +25,17 @@ public class CartItemDTO {
         this.unitPrice = unitPrice;
         this.quantity = quantity;
         this.subtotal = subtotal;
+    }
+    
+    public CartItemDTO(Long cartItemId, Long productId, String productName, 
+                       BigDecimal unitPrice, Integer quantity, BigDecimal subtotal, String imageUrl) {
+        this.cartItemId = cartItemId;
+        this.productId = productId;
+        this.productName = productName;
+        this.unitPrice = unitPrice;
+        this.quantity = quantity;
+        this.subtotal = subtotal;
+        this.imageUrl = imageUrl;
     }
     
     // Getters and Setters
@@ -73,5 +85,13 @@ public class CartItemDTO {
     
     public void setSubtotal(BigDecimal subtotal) {
         this.subtotal = subtotal;
+    }
+    
+    public String getImageUrl() {
+        return imageUrl;
+    }
+    
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 }

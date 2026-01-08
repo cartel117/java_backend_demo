@@ -1,0 +1,1582 @@
+﻿<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Java 後端開發學習指南 - Docker & Azure</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Microsoft JhengHei', Arial, sans-serif;
+            line-height: 1.8;
+            color: #333;
+            background: #f5f7fa;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            background: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 60px 20px;
+            text-align: center;
+            margin: -40px -20px 40px -20px;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        h2 {
+            color: #667eea;
+            font-size: 2em;
+            margin: 40px 0 20px 0;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        h3 {
+            color: #764ba2;
+            font-size: 1.5em;
+            margin: 30px 0 15px 0;
+        }
+
+        h4 {
+            color: #555;
+            font-size: 1.2em;
+            margin: 20px 0 10px 0;
+        }
+
+        .timeline {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .timeline-item {
+            display: flex;
+            margin: 15px 0;
+            padding: 15px;
+            background: white;
+            border-left: 4px solid #667eea;
+            border-radius: 5px;
+        }
+
+        .timeline-week {
+            font-weight: bold;
+            color: #667eea;
+            min-width: 120px;
+        }
+
+        .timeline-content {
+            flex: 1;
+        }
+
+        .priority-box {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+            margin: 5px 5px 5px 0;
+        }
+
+        .priority-high {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .priority-medium {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        .priority-low {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            color: #e83e8c;
+        }
+
+        pre code {
+            background: transparent;
+            padding: 0;
+            color: #f8f8f2;
+        }
+
+        .card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .card-header {
+            font-weight: bold;
+            color: #667eea;
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .feature-list li {
+            padding: 10px 0;
+            padding-left: 30px;
+            position: relative;
+        }
+
+        .feature-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #4caf50;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .warning-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .info-box {
+            background: #d1ecf1;
+            border-left: 4px solid #0dcaf0;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .success-box {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+
+        th {
+            background: #667eea;
+            color: white;
+            font-weight: bold;
+        }
+
+        tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .cost-table {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .total-cost {
+            font-size: 1.5em;
+            color: #667eea;
+            font-weight: bold;
+            text-align: right;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 2px solid #667eea;
+        }
+
+        .command-box {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+
+        .command-title {
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .toc {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 30px 0;
+        }
+
+        .toc h3 {
+            color: #667eea;
+            margin-top: 0;
+        }
+
+        .toc ul {
+            list-style: none;
+            padding-left: 20px;
+        }
+
+        .toc li {
+            padding: 5px 0;
+        }
+
+        .toc a {
+            color: #333;
+            text-decoration: none;
+        }
+
+        .toc a:hover {
+            color: #667eea;
+            text-decoration: underline;
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+            .container {
+                box-shadow: none;
+                max-width: 100%;
+            }
+            pre {
+                page-break-inside: avoid;
+            }
+            .card {
+                page-break-inside: avoid;
+            }
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: bold;
+            margin: 0 5px;
+        }
+
+        .badge-docker {
+            background: #0db7ed;
+            color: white;
+        }
+
+        .badge-azure {
+            background: #0078d4;
+            color: white;
+        }
+
+        .badge-java {
+            background: #007396;
+            color: white;
+        }
+
+        .badge-spring {
+            background: #6db33f;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 Java 後端開發完整學習指南</h1>
+            <p>從本地開發到 Docker 容器化，再到 Azure 雲端部署</p>
+            <div style="margin-top: 20px;">
+                <span class="badge badge-java">Java 17</span>
+                <span class="badge badge-spring">Spring Boot 3</span>
+                <span class="badge badge-docker">Docker</span>
+                <span class="badge badge-azure">Azure</span>
+            </div>
+        </header>
+
+        <!-- 目錄 -->
+        <div class="toc">
+            <h3>📋 目錄</h3>
+            <ul>
+                <li><a href="#overview">專案概覽</a></li>
+                <li><a href="#phase1">階段 1：本地開發基礎強化</a></li>
+                <li><a href="#phase2">階段 2：Docker 容器化</a></li>
+                <li><a href="#phase3">階段 3：Azure 雲端部署</a></li>
+                <li><a href="#phase4">階段 4：CI/CD 自動化</a></li>
+                <li><a href="#timeline">完整時間規劃</a></li>
+                <li><a href="#cost">成本估算</a></li>
+                <li><a href="#resources">學習資源</a></li>
+            </ul>
+        </div>
+
+        <!-- 專案概覽 -->
+        <section id="overview">
+            <h2>📦 專案概覽</h2>
+            
+            <div class="success-box">
+                <strong>✅ 已完成的功能</strong>
+                <ul class="feature-list">
+                    <li>使用者註冊與登入（JWT 驗證）</li>
+                    <li>商品管理（CRUD 操作）</li>
+                    <li>購物車系統（資料庫持久化）</li>
+                    <li>CORS 跨域設定</li>
+                    <li>PostgreSQL 資料庫整合</li>
+                    <li>RESTful API 設計</li>
+                </ul>
+            </div>
+
+            <h3>🏗️ 系統架構</h3>
+            <div class="card">
+                <div class="card-header">技術堆疊</div>
+                <table>
+                    <tr>
+                        <th>層級</th>
+                        <th>技術</th>
+                        <th>說明</th>
+                    </tr>
+                    <tr>
+                        <td><strong>後端框架</strong></td>
+                        <td>Spring Boot 3.x</td>
+                        <td>Java 企業級應用框架</td>
+                    </tr>
+                    <tr>
+                        <td><strong>資料庫</strong></td>
+                        <td>PostgreSQL 15</td>
+                        <td>關聯式資料庫</td>
+                    </tr>
+                    <tr>
+                        <td><strong>ORM</strong></td>
+                        <td>JPA/Hibernate</td>
+                        <td>物件關係映射</td>
+                    </tr>
+                    <tr>
+                        <td><strong>身份驗證</strong></td>
+                        <td>JWT (JSON Web Token)</td>
+                        <td>無狀態認證機制</td>
+                    </tr>
+                    <tr>
+                        <td><strong>安全框架</strong></td>
+                        <td>Spring Security</td>
+                        <td>安全控制與權限管理</td>
+                    </tr>
+                    <tr>
+                        <td><strong>前端</strong></td>
+                        <td>原生 HTML/CSS/JavaScript</td>
+                        <td>靜態網頁</td>
+                    </tr>
+                </table>
+            </div>
+
+            <h3>📊 資料庫結構</h3>
+            <div class="card">
+                <div class="card-header">主要資料表</div>
+                <ul class="feature-list">
+                    <li><strong>users</strong> - 使用者資訊（id, username, email, password）</li>
+                    <li><strong>products</strong> - 商品資訊（product_id, product_name, unit_price, category_id）</li>
+                    <li><strong>carts</strong> - 購物車（cart_id, user_id, created_at, updated_at）</li>
+                    <li><strong>cart_items</strong> - 購物車項目（cart_item_id, cart_id, product_id, quantity, unit_price）</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 階段 1 -->
+        <section id="phase1">
+            <h2>🎯 階段 1：本地開發基礎強化（1-2週）</h2>
+            
+            <div class="info-box">
+                <strong>💡 為什麼要做這些？</strong><br>
+                在容器化和雲端部署前，必須確保程式碼的品質和可維護性。良好的異常處理、日誌和測試是專業開發的基礎。
+            </div>
+
+            <h3>1.1 異常處理與驗證 <span class="priority-box priority-high">⭐⭐⭐⭐⭐</span></h3>
+            
+            <h4>建立自定義異常類別</h4>
+            <pre><code>// src/main/java/dev/backend/demo/exception/ResourceNotFoundException.java
+package dev.backend.demo.exception;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
+
+@ResponseStatus(HttpStatus.NOT_FOUND)
+public class ResourceNotFoundException extends RuntimeException {
+    public ResourceNotFoundException(String message) {
+        super(message);
+    }
+}</code></pre>
+
+            <h4>全局異常處理器</h4>
+            <pre><code>// src/main/java/dev/backend/demo/exception/GlobalExceptionHandler.java
+package dev.backend.demo.exception;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
+
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+    
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; handleNotFound(
+            ResourceNotFoundException ex) {
+        Map&lt;String, Object&gt; error = new HashMap&lt;&gt;();
+        error.put("timestamp", LocalDateTime.now());
+        error.put("status", 404);
+        error.put("error", "Not Found");
+        error.put("message", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+    
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; handleGeneral(Exception ex) {
+        Map&lt;String, Object&gt; error = new HashMap&lt;&gt;();
+        error.put("timestamp", LocalDateTime.now());
+        error.put("status", 500);
+        error.put("error", "Internal Server Error");
+        error.put("message", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+    }
+}</code></pre>
+
+            <h4>DTO 驗證</h4>
+            <pre><code>// 在 pom.xml 加入依賴
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-validation&lt;/artifactId&gt;
+&lt;/dependency&gt;
+
+// 使用驗證註解
+public class AddToCartRequest {
+    @NotNull(message = "商品ID不能為空")
+    @Min(value = 1, message = "商品ID必須大於0")
+    private Long productId;
+    
+    @Min(value = 1, message = "數量必須大於0")
+    @Max(value = 999, message = "數量不能超過999")
+    private Integer quantity;
+    
+    // getters and setters
+}</code></pre>
+
+            <h3>1.2 日誌管理 <span class="priority-box priority-high">⭐⭐⭐⭐⭐</span></h3>
+            
+            <div class="warning-box">
+                <strong>⚠️ 重要：</strong> 在 Docker 和 Azure 環境中，日誌是您唯一的除錯工具！
+            </div>
+
+            <h4>使用 Lombok @Slf4j</h4>
+            <pre><code>import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Service
+public class CartService {
+    
+    public CartResponseDTO addToCart(Long userId, Long productId, Integer quantity) {
+        log.info("用戶 {} 加入商品 {} 到購物車，數量: {}", userId, productId, quantity);
+        
+        try {
+            // 業務邏輯
+            log.debug("購物車操作成功");
+            return cartResponse;
+        } catch (Exception e) {
+            log.error("加入購物車失敗: userId={}, productId={}", userId, productId, e);
+            throw e;
+        }
+    }
+}</code></pre>
+
+            <h4>application.properties 日誌配置</h4>
+            <pre><code># 日誌等級設定
+logging.level.root=INFO
+logging.level.dev.backend.demo=DEBUG
+logging.level.org.springframework.web=DEBUG
+logging.level.org.hibernate.SQL=DEBUG
+
+# 日誌輸出格式（容器友善）
+logging.pattern.console=%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n
+
+# 日誌檔案（本地開發用）
+logging.file.name=logs/app.log
+logging.file.max-size=10MB
+logging.file.max-history=30</code></pre>
+
+            <h3>1.3 Health Check API <span class="priority-box priority-high">⭐⭐⭐⭐⭐</span></h3>
+            
+            <pre><code>@RestController
+public class HealthController {
+    
+    @GetMapping("/health")
+    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; health() {
+        Map&lt;String, Object&gt; status = new HashMap&lt;&gt;();
+        status.put("status", "UP");
+        status.put("timestamp", Instant.now());
+        status.put("application", "demo");
+        return ResponseEntity.ok(status);
+    }
+    
+    @GetMapping("/health/db")
+    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; dbHealth() {
+        // 檢查資料庫連線
+        try {
+            productRepository.count();
+            Map&lt;String, Object&gt; status = new HashMap&lt;&gt;();
+            status.put("database", "UP");
+            return ResponseEntity.ok(status);
+        } catch (Exception e) {
+            Map&lt;String, Object&gt; status = new HashMap&lt;&gt;();
+            status.put("database", "DOWN");
+            status.put("error", e.getMessage());
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(status);
+        }
+    }
+}</code></pre>
+        </section>
+
+        <!-- 階段 2 -->
+        <section id="phase2">
+            <h2>🐳 階段 2：Docker 容器化（1-2週）</h2>
+            
+            <div class="info-box">
+                <strong>💡 Docker 的優勢</strong>
+                <ul class="feature-list">
+                    <li>確保開發、測試、生產環境一致</li>
+                    <li>簡化部署流程</li>
+                    <li>易於擴展和管理</li>
+                    <li>資源隔離與安全性</li>
+                </ul>
+            </div>
+
+            <h3>2.1 建立 Dockerfile</h3>
+            
+            <div class="command-box">
+                <div class="command-title">📄 Dockerfile（專案根目錄）</div>
+                <pre><code># 多階段構建：減少最終映像檔大小
+
+# 階段 1：構建階段
+FROM maven:3.9-eclipse-temurin-17 AS builder
+WORKDIR /app
+
+# 複製 pom.xml 並下載依賴（利用 Docker 快取）
+COPY pom.xml .
+RUN mvn dependency:go-offline
+
+# 複製原始碼並構建
+COPY src ./src
+RUN mvn clean package -DskipTests
+
+# 階段 2：運行階段（使用輕量級 JRE）
+FROM eclipse-temurin:17-jre-alpine
+WORKDIR /app
+
+# 建立非 root 使用者（安全性最佳實踐）
+RUN addgroup -S spring && adduser -S spring -G spring
+USER spring:spring
+
+# 複製構建好的 JAR 檔案
+COPY --from=builder /app/target/*.jar app.jar
+
+# 健康檢查
+HEALTHCHECK --interval=30s --timeout=3s --start-period=40s \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:8080/health || exit 1
+
+# 暴露端口
+EXPOSE 8080
+
+# 啟動應用程式
+ENTRYPOINT ["java", "-jar", "app.jar"]</code></pre>
+            </div>
+
+            <h3>2.2 Docker Compose（本地開發）</h3>
+            
+            <div class="command-box">
+                <div class="command-title">📄 docker-compose.yml</div>
+                <pre><code>version: '3.8'
+
+services:
+  # PostgreSQL 資料庫
+  postgres:
+    image: postgres:15-alpine
+    container_name: demo-postgres
+    environment:
+      POSTGRES_DB: demo
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: your-password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - demo-network
+
+  # Spring Boot 應用
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: demo-app
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/demo
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: your-password
+      JWT_SECRET: your-secret-key-for-development
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - demo-network
+
+volumes:
+  postgres-data:
+
+networks:
+  demo-network:
+    driver: bridge</code></pre>
+            </div>
+
+            <h3>2.3 Docker 環境配置</h3>
+            
+            <div class="command-box">
+                <div class="command-title">📄 application-docker.properties</div>
+                <pre><code>spring.application.name=demo
+
+# Docker 環境資料庫連線
+spring.datasource.url=${SPRING_DATASOURCE_URL}
+spring.datasource.username=${SPRING_DATASOURCE_USERNAME}
+spring.datasource.password=${SPRING_DATASOURCE_PASSWORD}
+
+# JPA 設定
+spring.jpa.show-sql=false
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+
+# JWT 設定
+jwt.secret=${JWT_SECRET}
+jwt.expiration=86400000
+
+# 日誌設定（容器友善）
+logging.level.root=INFO
+logging.level.dev.backend.demo=DEBUG
+logging.pattern.console=%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n</code></pre>
+            </div>
+
+            <h3>2.4 .dockerignore</h3>
+            
+            <pre><code># 加速構建，減少映像檔大小
+target/
+.git/
+.gitignore
+.env
+*.md
+.vscode/
+.idea/
+*.iml
+node_modules/
+logs/
+*.log</code></pre>
+
+            <h3>2.5 常用 Docker 指令</h3>
+            
+            <div class="card">
+                <div class="card-header">🛠️ Docker 操作指令</div>
+                
+                <h4>構建與啟動</h4>
+                <pre><code># 構建映像檔
+docker build -t demo-app:latest .
+
+# 使用 Docker Compose 啟動所有服務
+docker-compose up -d
+
+# 查看運行中的容器
+docker ps
+
+# 查看日誌
+docker-compose logs -f app
+
+# 只查看應用程式日誌
+docker logs -f demo-app</code></pre>
+
+                <h4>管理與除錯</h4>
+                <pre><code># 停止服務
+docker-compose down
+
+# 停止並刪除 Volume（清除資料庫）
+docker-compose down -v
+
+# 重新構建並啟動
+docker-compose up -d --build
+
+# 進入容器內部
+docker exec -it demo-app sh
+
+# 進入 PostgreSQL 容器
+docker exec -it demo-postgres psql -U postgres -d demo
+
+# 查看資源使用情況
+docker stats</code></pre>
+
+                <h4>清理</h4>
+                <pre><code># 刪除停止的容器
+docker container prune
+
+# 刪除未使用的映像檔
+docker image prune
+
+# 刪除所有未使用的資源
+docker system prune -a</code></pre>
+            </div>
+        </section>
+
+        <!-- 階段 3 -->
+        <section id="phase3">
+            <h2>☁️ 階段 3：Azure 雲端部署（2-3週）</h2>
+            
+            <div class="info-box">
+                <strong>💡 為什麼選擇 Azure Container Apps？</strong>
+                <ul class="feature-list">
+                    <li>完全託管的容器服務，無需管理基礎設施</li>
+                    <li>自動擴展（根據流量自動增減實例）</li>
+                    <li>成本效益高（按使用量計費）</li>
+                    <li>原生支援 Docker 容器</li>
+                    <li>整合 Azure 生態系統</li>
+                </ul>
+            </div>
+
+            <h3>3.1 Azure 基礎服務</h3>
+            
+            <div class="card">
+                <div class="card-header">必學的 Azure 服務</div>
+                <table>
+                    <tr>
+                        <th>服務名稱</th>
+                        <th>用途</th>
+                        <th>重要性</th>
+                    </tr>
+                    <tr>
+                        <td><strong>Resource Group</strong></td>
+                        <td>資源群組，管理所有 Azure 資源</td>
+                        <td><span class="priority-box priority-high">必學</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Container Registry (ACR)</strong></td>
+                        <td>儲存 Docker 映像檔</td>
+                        <td><span class="priority-box priority-high">必學</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Container Apps</strong></td>
+                        <td>運行容器化應用程式</td>
+                        <td><span class="priority-box priority-high">必學</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Database for PostgreSQL</strong></td>
+                        <td>託管的 PostgreSQL 資料庫</td>
+                        <td><span class="priority-box priority-high">必學</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Key Vault</strong></td>
+                        <td>安全儲存密鑰和機密資訊</td>
+                        <td><span class="priority-box priority-medium">建議</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Application Insights</strong></td>
+                        <td>應用程式監控和分析</td>
+                        <td><span class="priority-box priority-medium">建議</span></td>
+                    </tr>
+                </table>
+            </div>
+
+            <h3>3.2 安裝 Azure CLI</h3>
+            
+            <pre><code># Windows (PowerShell)
+winget install Microsoft.AzureCLI
+
+# 驗證安裝
+az --version
+
+# 登入 Azure
+az login
+
+# 設定預設訂閱（如果有多個）
+az account list --output table
+az account set --subscription "你的訂閱名稱"</code></pre>
+
+            <h3>3.3 建立 Azure 資源</h3>
+            
+            <div class="command-box">
+                <div class="command-title">步驟 1：建立資源群組</div>
+                <pre><code># 建立資源群組（所有資源的容器）
+az group create \
+  --name demo-rg \
+  --location eastasia</code></pre>
+            </div>
+
+            <div class="command-box">
+                <div class="command-title">步驟 2：建立 Container Registry</div>
+                <pre><code># 建立 Azure Container Registry
+az acr create \
+  --resource-group demo-rg \
+  --name demoacr1234 \
+  --sku Basic \
+  --admin-enabled true
+
+# 登入 ACR
+az acr login --name demoacr1234
+
+# 取得登入伺服器
+az acr show --name demoacr1234 --query loginServer --output tsv
+# 輸出：demoacr1234.azurecr.io</code></pre>
+            </div>
+
+            <div class="command-box">
+                <div class="command-title">步驟 3：建立 PostgreSQL 資料庫</div>
+                <pre><code># 建立 Azure Database for PostgreSQL
+az postgres flexible-server create \
+  --resource-group demo-rg \
+  --name demo-postgres-server \
+  --location eastasia \
+  --admin-user adminuser \
+  --admin-password "YourStrongPassword123!" \
+  --sku-name Standard_B1ms \
+  --storage-size 32 \
+  --version 15
+
+# 建立資料庫
+az postgres flexible-server db create \
+  --resource-group demo-rg \
+  --server-name demo-postgres-server \
+  --database-name demo
+
+# 設定防火牆規則（允許 Azure 服務存取）
+az postgres flexible-server firewall-rule create \
+  --resource-group demo-rg \
+  --name demo-postgres-server \
+  --rule-name AllowAzureServices \
+  --start-ip-address 0.0.0.0 \
+  --end-ip-address 0.0.0.0
+
+# 取得連線字串
+az postgres flexible-server show-connection-string \
+  --server-name demo-postgres-server \
+  --database-name demo \
+  --admin-user adminuser</code></pre>
+            </div>
+
+            <div class="command-box">
+                <div class="command-title">步驟 4：推送映像檔到 ACR</div>
+                <pre><code># 標記本地映像檔
+docker tag demo-app:latest demoacr1234.azurecr.io/demo-app:latest
+
+# 推送到 ACR
+docker push demoacr1234.azurecr.io/demo-app:latest
+
+# 列出 ACR 中的映像檔
+az acr repository list --name demoacr1234 --output table</code></pre>
+            </div>
+
+            <div class="command-box">
+                <div class="command-title">步驟 5：建立 Container Apps 環境</div>
+                <pre><code># 安裝 Container Apps 擴充功能
+az extension add --name containerapp --upgrade
+
+# 建立 Container Apps 環境
+az containerapp env create \
+  --name demo-env \
+  --resource-group demo-rg \
+  --location eastasia</code></pre>
+            </div>
+
+            <div class="command-box">
+                <div class="command-title">步驟 6：部署應用程式</div>
+                <pre><code># 取得 ACR 密碼
+az acr credential show --name demoacr1234 --query "passwords[0].value" -o tsv
+
+# 部署到 Container Apps
+az containerapp create \
+  --name demo-app \
+  --resource-group demo-rg \
+  --environment demo-env \
+  --image demoacr1234.azurecr.io/demo-app:latest \
+  --target-port 8080 \
+  --ingress external \
+  --registry-server demoacr1234.azurecr.io \
+  --registry-username demoacr1234 \
+  --registry-password "從上一步取得的密碼" \
+  --env-vars \
+    SPRING_PROFILES_ACTIVE=azure \
+    SPRING_DATASOURCE_URL="jdbc:postgresql://demo-postgres-server.postgres.database.azure.com:5432/demo?sslmode=require" \
+    SPRING_DATASOURCE_USERNAME=adminuser \
+    SPRING_DATASOURCE_PASSWORD="YourStrongPassword123!" \
+    JWT_SECRET="your-production-secret-key-at-least-256-bits-long" \
+  --cpu 0.5 \
+  --memory 1.0Gi \
+  --min-replicas 1 \
+  --max-replicas 3
+
+# 取得應用程式 URL
+az containerapp show \
+  --name demo-app \
+  --resource-group demo-rg \
+  --query properties.configuration.ingress.fqdn \
+  --output tsv</code></pre>
+            </div>
+
+            <h3>3.4 Azure 環境配置</h3>
+            
+            <div class="command-box">
+                <div class="command-title">📄 application-azure.properties</div>
+                <pre><code>spring.application.name=demo
+
+# Azure PostgreSQL 連線（使用 SSL）
+spring.datasource.url=${SPRING_DATASOURCE_URL}
+spring.datasource.username=${SPRING_DATASOURCE_USERNAME}
+spring.datasource.password=${SPRING_DATASOURCE_PASSWORD}
+
+# 連線池設定（Azure 限制）
+spring.datasource.hikari.maximum-pool-size=5
+spring.datasource.hikari.minimum-idle=2
+spring.datasource.hikari.connection-timeout=20000
+
+# JPA 設定（生產環境）
+spring.jpa.show-sql=false
+spring.jpa.hibernate.ddl-auto=validate
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+
+# JWT
+jwt.secret=${JWT_SECRET}
+jwt.expiration=86400000
+
+# 日誌設定（生產環境）
+logging.level.root=WARN
+logging.level.dev.backend.demo=INFO
+logging.pattern.console=%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n</code></pre>
+            </div>
+
+            <div class="warning-box">
+                <strong>⚠️ 安全性注意事項</strong>
+                <ul>
+                    <li>不要在程式碼中硬編碼密碼和 Secret</li>
+                    <li>使用環境變數或 Azure Key Vault</li>
+                    <li>生產環境的 JWT Secret 至少 256 位元</li>
+                    <li>PostgreSQL 連線必須使用 SSL（<code>sslmode=require</code>）</li>
+                    <li>定期更換密碼和金鑰</li>
+                </ul>
+            </div>
+
+            <h3>3.5 監控與日誌</h3>
+            
+            <div class="card">
+                <div class="card-header">查看應用程式狀態</div>
+                <pre><code># 查看 Container App 狀態
+az containerapp show --name demo-app --resource-group demo-rg
+
+# 查看即時日誌
+az containerapp logs show \
+  --name demo-app \
+  --resource-group demo-rg \
+  --follow
+
+# 查看最近的日誌
+az containerapp logs show \
+  --name demo-app \
+  --resource-group demo-rg \
+  --tail 100
+
+# 查看應用程式 URL
+az containerapp show \
+  --name demo-app \
+  --resource-group demo-rg \
+  --query properties.configuration.ingress.fqdn</code></pre>
+            </div>
+        </section>
+
+        <!-- 階段 4 -->
+        <section id="phase4">
+            <h2>🔄 階段 4：CI/CD 自動化部署（1-2週）</h2>
+            
+            <div class="info-box">
+                <strong>💡 CI/CD 的好處</strong>
+                <ul class="feature-list">
+                    <li>自動化測試，確保程式碼品質</li>
+                    <li>自動化部署，減少人為錯誤</li>
+                    <li>快速迭代，縮短上線時間</li>
+                    <li>版本控制，方便回滾</li>
+                </ul>
+            </div>
+
+            <h3>4.1 GitHub Actions 設定</h3>
+            
+            <div class="command-box">
+                <div class="command-title">📄 .github/workflows/azure-deploy.yml</div>
+                <pre><code>name: Deploy to Azure Container Apps
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  AZURE_CONTAINER_REGISTRY: demoacr1234
+  IMAGE_NAME: demo-app
+  RESOURCE_GROUP: demo-rg
+  CONTAINER_APP_NAME: demo-app
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: maven
+    
+    - name: Run tests
+      run: mvn test
+    
+    - name: Build with Maven
+      run: mvn clean package -DskipTests
+    
+    - name: Log in to Azure Container Registry
+      uses: azure/docker-login@v1
+      with:
+        login-server: ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io
+        username: ${{ secrets.ACR_USERNAME }}
+        password: ${{ secrets.ACR_PASSWORD }}
+    
+    - name: Build and push Docker image
+      run: |
+        docker build -t ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }} .
+        docker build -t ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.IMAGE_NAME }}:latest .
+        docker push ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}
+        docker push ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.IMAGE_NAME }}:latest
+    
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    
+    - name: Deploy to Azure Container Apps
+      run: |
+        az containerapp update \
+          --name ${{ env.CONTAINER_APP_NAME }} \
+          --resource-group ${{ env.RESOURCE_GROUP }} \
+          --image ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}
+    
+    - name: Logout from Azure
+      run: az logout</code></pre>
+            </div>
+
+            <h3>4.2 設定 GitHub Secrets</h3>
+            
+            <div class="card">
+                <div class="card-header">🔐 需要設定的 Secrets</div>
+                
+                <p><strong>前往 GitHub Repository → Settings → Secrets and variables → Actions</strong></p>
+                
+                <h4>1. ACR_USERNAME</h4>
+                <pre><code># 取得 ACR 使用者名稱
+az acr credential show --name demoacr1234 --query username -o tsv</code></pre>
+                
+                <h4>2. ACR_PASSWORD</h4>
+                <pre><code># 取得 ACR 密碼
+az acr credential show --name demoacr1234 --query "passwords[0].value" -o tsv</code></pre>
+                
+                <h4>3. AZURE_CREDENTIALS</h4>
+                <pre><code># 建立服務主體
+az ad sp create-for-rbac \
+  --name "github-actions-demo" \
+  --role contributor \
+  --scopes /subscriptions/{訂閱ID}/resourceGroups/demo-rg \
+  --sdk-auth
+
+# 輸出的 JSON 就是 AZURE_CREDENTIALS 的值</code></pre>
+            </div>
+
+            <h3>4.3 工作流程</h3>
+            
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-week">步驟 1</div>
+                    <div class="timeline-content">
+                        <strong>開發者 push 程式碼到 GitHub</strong><br>
+                        git push origin main
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-week">步驟 2</div>
+                    <div class="timeline-content">
+                        <strong>GitHub Actions 自動觸發</strong><br>
+                        檢出程式碼、設定 Java 環境
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-week">步驟 3</div>
+                    <div class="timeline-content">
+                        <strong>執行測試</strong><br>
+                        mvn test（確保程式碼品質）
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-week">步驟 4</div>
+                    <div class="timeline-content">
+                        <strong>構建 JAR 檔案</strong><br>
+                        mvn clean package
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-week">步驟 5</div>
+                    <div class="timeline-content">
+                        <strong>構建 Docker 映像檔</strong><br>
+                        docker build 並推送到 ACR
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-week">步驟 6</div>
+                    <div class="timeline-content">
+                        <strong>部署到 Azure</strong><br>
+                        更新 Container App，自動重啟
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-week">完成 ✅</div>
+                    <div class="timeline-content">
+                        <strong>應用程式上線</strong><br>
+                        使用者可以存取新版本
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 時間規劃 -->
+        <!-- 更新於 2025/12/29 -->
+<section id="progress">
+    <h2>🎯 目前學習進度（2025/12/29）</h2>
+    
+    <div class="success-box">
+        <h3>✅ 已完成項目</h3>
+        <ul class="feature-list">
+            <li><strong>階段 1：本地開發基礎強化</strong>
+                <ul>
+                    <li>✓ 使用者註冊與登入（JWT 驗證）</li>
+                    <li>✓ 產品管理 CRUD API</li>
+                    <li>✓ 購物車功能（Cart + CartItems）</li>
+                    <li>✓ Health Check API</li>
+                    <li>✓ Spring Security 配置</li>
+                    <li>✓ PostgreSQL 資料庫整合</li>
+                </ul>
+            </li>
+            <li><strong>階段 3：Azure 雲端部署</strong>
+                <ul>
+                    <li>✓ Azure App Service 部署</li>
+                    <li>✓ Azure PostgreSQL Flexible Server 設定</li>
+                    <li>✓ 環境變數配置</li>
+                    <li>✓ 應用程式成功運行在 Azure</li>
+                </ul>
+            </li>
+            <li><strong>API 文檔化</strong>
+                <ul>
+                    <li>✓ SpringDoc OpenAPI 3.0 整合</li>
+                    <li>✓ Swagger UI 配置</li>
+                    <li>✓ JWT 認證配置（Bearer Token）</li>
+                    <li>✓ 所有 Controller 添加 Swagger 註解</li>
+                    <li>✓ API 文檔完整說明</li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+
+    <div class="warning-box">
+        <h3>🔧 最近修復的問題</h3>
+        <ul class="feature-list">
+            <li><strong>Swagger UI 500 錯誤（2025/12/29）</strong>
+                <ul>
+                    <li>問題：/api-docs 端點返回 500 錯誤</li>
+                    <li>原因：springdoc-openapi 2.3.0 與 Spring Boot 3.5.9 版本衝突</li>
+                    <li>解決方案：
+                        <ol>
+                            <li>升級 springdoc-openapi 到 2.8.4</li>
+                            <li>修正 OpenApiConfig 添加 Components 配置</li>
+                            <li>正確註冊 SecurityScheme（Bearer Authentication）</li>
+                            <li>調整 Spring Boot 版本為 3.4.1 確保相容性</li>
+                        </ol>
+                    </li>
+                    <li>Git Commit: 1153108</li>
+                    <li>分支：azure</li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+
+    <div class="info-box">
+        <h3>🚀 下一步計劃</h3>
+        <ul class="feature-list">
+            <li><strong>優先級 1：完善 API 文檔</strong>
+                <ul>
+                    <li>確認 Azure 上的 Swagger UI 正常運作</li>
+                    <li>添加更多 API 使用範例</li>
+                    <li>完善錯誤回應說明</li>
+                </ul>
+            </li>
+            <li><strong>優先級 2：Docker 容器化</strong>
+                <ul>
+                    <li>建立 Dockerfile</li>
+                    <li>設定 Docker Compose（App + PostgreSQL）</li>
+                    <li>本地測試容器化應用</li>
+                </ul>
+            </li>
+            <li><strong>優先級 3：CI/CD 自動化</strong>
+                <ul>
+                    <li>設定 GitHub Actions</li>
+                    <li>自動化測試流程</li>
+                    <li>自動化部署到 Azure</li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+
+    <div class="timeline">
+        <h3>📊 學習時程表</h3>
+        <div class="timeline-item">
+            <div class="timeline-week">2025/12/26</div>
+            <div class="timeline-content">
+                <strong>Azure 部署完成</strong> - Spring Boot 應用成功部署到 Azure App Service
+            </div>
+        </div>
+        <div class="timeline-item">
+            <div class="timeline-week">2025/12/29</div>
+            <div class="timeline-content">
+                <strong>OpenAPI/Swagger 整合</strong> - 完成 API 文檔化，修復版本衝突問題
+            </div>
+        </div>
+        <div class="timeline-item">
+            <div class="timeline-week">預計 2026/01</div>
+            <div class="timeline-content">
+                <strong>Docker 容器化</strong> - 學習 Docker 並容器化應用
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<section id="timeline">
+            <h2>📅 完整時間規劃表</h2>
+            
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-week">Week 1-2</div>
+                    <div class="timeline-content">
+                        <strong>本地開發優化</strong>
+                        <ul class="feature-list">
+                            <li>異常處理與驗證</li>
+                            <li>日誌管理</li>
+                            <li>單元測試</li>
+                            <li>Health Check API</li>
+                        </ul>
+                        <span class="priority-box priority-high">⭐⭐⭐⭐⭐</span>
+                    </div>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-week">Week 3-4</div>
+                    <div class="timeline-content">
+                        <strong>Docker 容器化</strong>
+                        <ul class="feature-list">
+                            <li>學習 Docker 基礎概念</li>
+                            <li>建立 Dockerfile</li>
+                            <li>設定 Docker Compose</li>
+                            <li>本地測試容器化應用</li>
+                        </ul>
+                        <span class="priority-box priority-high">⭐⭐⭐⭐⭐</span>
+                    </div>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-week">Week 5-6</div>
+                    <div class="timeline-content">
+                        <strong>Azure 基礎</strong>
+                        <ul class="feature-list">
+                            <li>學習 Azure Portal</li>
+                            <li>建立 ACR 和 PostgreSQL</li>
+                            <li>了解 Azure CLI</li>
+                            <li>推送映像檔到 ACR</li>
+                        </ul>
+                        <span class="priority-box priority-high">⭐⭐⭐⭐</span>
+                    </div>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-week">Week 7-8</div>
+                    <div class="timeline-content">
+                        <strong>Azure 部署</strong>
+                        <ul class="feature-list">
+                            <li>建立 Container Apps</li>
+                            <li>設定環境變數</li>
+                            <li>連接 PostgreSQL</li>
+                            <li>設定監控和日誌</li>
+                        </ul>
+                        <span class="priority-box priority-high">⭐⭐⭐⭐</span>
+                    </div>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-week">Week 9-10</div>
+                    <div class="timeline-content">
+                        <strong>CI/CD 自動化</strong>
+                        <ul class="feature-list">
+                            <li>設定 GitHub Actions</li>
+                            <li>自動化測試</li>
+                            <li>自動化部署</li>
+                            <li>版本管理</li>
+                        </ul>
+                        <span class="priority-box priority-medium">⭐⭐⭐</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 成本估算 -->
+        <section id="cost">
+            <h2>💰 Azure 成本估算</h2>
+            
+            <div class="cost-table">
+                <table>
+                    <tr>
+                        <th>服務</th>
+                        <th>規格</th>
+                        <th>月費（台幣）</th>
+                        <th>備註</th>
+                    </tr>
+                    <tr>
+                        <td><strong>Container Apps</strong></td>
+                        <td>0.5 vCPU, 1GB RAM</td>
+                        <td>$300 - $500</td>
+                        <td>按使用量計費</td>
+                    </tr>
+                    <tr>
+                        <td><strong>PostgreSQL</strong></td>
+                        <td>Standard_B1ms (1核2GB)</td>
+                        <td>$500 - $800</td>
+                        <td>包含 32GB 儲存</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Container Registry</strong></td>
+                        <td>Basic (10GB)</td>
+                        <td>$150 - $200</td>
+                        <td>儲存 Docker 映像檔</td>
+                    </tr>
+                    <tr>
+                        <td><strong>流量費用</strong></td>
+                        <td>視使用量</td>
+                        <td>$100 - $300</td>
+                        <td>前 5GB 免費</td>
+                    </tr>
+                </table>
+                
+                <div class="total-cost">
+                    總計：約 $1,050 - $1,800 / 月
+                </div>
+            </div>
+
+            <div class="success-box">
+                <strong>💡 省錢技巧</strong>
+                <ul class="feature-list">
+                    <li><strong>使用免費額度</strong> - Azure 新帳號有 12 個月免費試用</li>
+                    <li><strong>開發環境用 Docker Compose</strong> - 本地開發不產生費用</li>
+                    <li><strong>按需啟動</strong> - 不使用時停止 Azure 資源</li>
+                    <li><strong>自動縮放</strong> - Container Apps 可設定最小副本數為 0</li>
+                    <li><strong>保留實例</strong> - 長期使用可購買保留實例，折扣高達 72%</li>
+                </ul>
+            </div>
+
+            <div class="warning-box">
+                <strong>⚠️ 注意事項</strong>
+                <ul>
+                    <li>實際費用會根據使用量而變動</li>
+                    <li>建議設定費用警示，避免超支</li>
+                    <li>定期檢查未使用的資源並刪除</li>
+                    <li>使用 Azure 成本管理工具監控開銷</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 學習資源 -->
+        <section id="resources">
+            <h2>📚 學習資源</h2>
+            
+            <div class="card">
+                <div class="card-header">🐳 Docker</div>
+                <ul class="feature-list">
+                    <li><strong>官方文檔</strong> - <a href="https://docs.docker.com/" target="_blank">https://docs.docker.com/</a></li>
+                    <li><strong>Docker Compose</strong> - <a href="https://docs.docker.com/compose/" target="_blank">https://docs.docker.com/compose/</a></li>
+                    <li><strong>Docker Hub</strong> - <a href="https://hub.docker.com/" target="_blank">https://hub.docker.com/</a></li>
+                    <li><strong>書籍</strong> - 《Docker - 從入門到實踐》</li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <div class="card-header">☁️ Azure</div>
+                <ul class="feature-list">
+                    <li><strong>Microsoft Learn</strong> - <a href="https://learn.microsoft.com/zh-tw/azure/" target="_blank">https://learn.microsoft.com/zh-tw/azure/</a></li>
+                    <li><strong>Container Apps 文檔</strong> - <a href="https://learn.microsoft.com/zh-tw/azure/container-apps/" target="_blank">https://learn.microsoft.com/zh-tw/azure/container-apps/</a></li>
+                    <li><strong>免費帳號</strong> - <a href="https://azure.microsoft.com/zh-tw/free/" target="_blank">https://azure.microsoft.com/zh-tw/free/</a></li>
+                    <li><strong>Azure CLI 文檔</strong> - <a href="https://learn.microsoft.com/zh-tw/cli/azure/" target="_blank">https://learn.microsoft.com/zh-tw/cli/azure/</a></li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <div class="card-header">☕ Spring Boot</div>
+                <ul class="feature-list">
+                    <li><strong>Spring 官方</strong> - <a href="https://spring.io/guides" target="_blank">https://spring.io/guides</a></li>
+                    <li><strong>Baeldung</strong> - <a href="https://www.baeldung.com/" target="_blank">https://www.baeldung.com/</a></li>
+                    <li><strong>Spring Boot 文檔</strong> - <a href="https://docs.spring.io/spring-boot/docs/current/reference/html/" target="_blank">https://docs.spring.io/spring-boot/</a></li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <div class="card-header">🔧 工具</div>
+                <ul class="feature-list">
+                    <li><strong>Docker Desktop</strong> - Windows 本地開發必備</li>
+                    <li><strong>Azure CLI</strong> - Azure 命令列工具</li>
+                    <li><strong>Postman</strong> - API 測試工具</li>
+                    <li><strong>DBeaver</strong> - 資料庫管理工具</li>
+                    <li><strong>VS Code</strong> - 推薦的程式碼編輯器</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 總結 -->
+        <section>
+            <h2>🎯 學習建議</h2>
+            
+            <div class="success-box">
+                <h3>立即開始（本週）</h3>
+                <ul class="feature-list">
+                    <li>實作異常處理和全局異常處理器</li>
+                    <li>加入 @Slf4j 日誌到所有 Service</li>
+                    <li>建立 Health Check API</li>
+                    <li>撰寫基本的單元測試</li>
+                </ul>
+            </div>
+
+            <div class="info-box">
+                <h3>短期目標（2週內）</h3>
+                <ul class="feature-list">
+                    <li>完成 Dockerfile 和 Docker Compose</li>
+                    <li>在本地用 Docker 運行整個系統</li>
+                    <li>熟悉 Docker 常用指令</li>
+                    <li>測試容器化應用的所有功能</li>
+                </ul>
+            </div>
+
+            <div class="warning-box">
+                <h3>中期目標（1個月內）</h3>
+                <ul class="feature-list">
+                    <li>註冊 Azure 免費帳號</li>
+                    <li>學習 Azure Portal 基本操作</li>
+                    <li>建立第一個 Container App</li>
+                    <li>完成資料庫遷移到 Azure PostgreSQL</li>
+                    <li>設定基本的監控和日誌</li>
+                </ul>
+            </div>
+
+            <h3>💪 最後的話</h3>
+            <p style="font-size: 1.1em; line-height: 1.8; margin-top: 20px;">
+                學習後端開發是一個循序漸進的過程，不要急於求成。建議先紮實地完成<strong>階段 1（本地開發優化）</strong>，
+                確保程式碼品質良好後，再進入 Docker 和 Azure。每個階段都要實際動手操作，遇到問題時多查文檔、
+                多 Google，這是成長的必經之路。
+            </p>
+            <p style="font-size: 1.1em; line-height: 1.8; margin-top: 10px;">
+                記住：<strong>好的日誌和異常處理</strong>在 Docker 和雲端環境中尤其重要，因為那時候你只能靠它們來除錯！
+            </p>
+        </section>
+
+        <footer style="text-align: center; margin-top: 60px; padding: 30px; background: #f8f9fa; border-radius: 10px;">
+            <p style="color: #666; font-size: 0.9em;">
+                最後更新：2025年12月11日<br>
+                本指南基於 Spring Boot 3.x、Docker 最新版、Azure Container Apps
+            </p>
+            <p style="color: #667eea; font-weight: bold; margin-top: 10px;">
+                祝學習順利！🚀
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        // 列印優化
+        window.onload = function() {
+            document.querySelectorAll('a').forEach(link => {
+                if (link.hostname !== window.location.hostname) {
+                    link.target = '_blank';
+                }
+            });
+        };
+    </script>
+</body>
+</html>

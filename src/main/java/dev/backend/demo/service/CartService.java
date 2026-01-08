@@ -124,7 +124,8 @@ public class CartService {
                     product.getProductName(),
                     item.getUnitPrice(),
                     item.getQuantity(),
-                    item.getSubtotal()
+                    item.getSubtotal(),
+                    product.getImageUrl()
                 );
             })
             .collect(Collectors.toList());
