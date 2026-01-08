@@ -56,6 +56,10 @@ public class Product {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    // 商品圖片網址
+    @Column(name = "image_url", columnDefinition = "TEXT")
+    private String imageUrl;
+
     // ========== 建構子 ==========
     
     /**
@@ -161,6 +165,14 @@ public class Product {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 
     @Override

@@ -227,6 +227,16 @@
             overflow: hidden;
         }
 
+        .product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .product-image .emoji-icon {
+            font-size: 60px;
+        }
+
         .product-badge {
             position: absolute;
             top: 10px;
@@ -387,6 +397,13 @@
             align-items: center;
             justify-content: center;
             font-size: 24px;
+            overflow: hidden;
+        }
+
+        .cart-item-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .cart-item-info {
@@ -859,9 +876,16 @@
                 const icon = getProductIcon(product.productName);
                 const card = document.createElement('div');
                 card.className = 'product-card';
+                
+                // 圖片顯示邏輯：優先使用 imageUrl，沒有則使用 Emoji
+                const imageContent = product.imageUrl 
+                    ? `<img src="${product.imageUrl}" alt="${product.productName}" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                       <span class="emoji-icon" style="display: none;">${icon}</span>`
+                    : `<span class="emoji-icon">${icon}</span>`;
+                
                 card.innerHTML = `
                     <div class="product-image">
-                        <span style="font-size: 60px;">${icon}</span>
+                        ${imageContent}
                         ${product.unitPrice < 10000 ? '<div class="product-badge">熱銷</div>' : ''}
                     </div>
                     <div class="product-info">
