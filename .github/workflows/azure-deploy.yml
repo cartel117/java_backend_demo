@@ -8,12 +8,14 @@ on:
 
 env:
   AZURE_WEBAPP_NAME: demo-springapp-20251226
-  ACR_LOGIN_SERVER: javabackedockercontainer.azurecr.io
-  IMAGE_NAME: demo-backend
+  IMAGE_NAME: ghcr.io/cartel117/java_backend_demo
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     
     steps:
       - name: Checkout code
@@ -27,26 +29,21 @@ jobs:
           cache: maven
       
       - name: Build with Maven
-        run: mvn clean package -DskipTests
+        run: |
+          chmod +x ./mvnw
+          mvn clean package -DskipTests
       
-      # 登入 Azure (使用你剛剛設定的 AZURE_CREDENTIALS)
-      - name: Log in to Azure
-        uses: azure/login@v2
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      # 登入 ACR 才能推送到倉庫
-      - name: Log in to Azure Container Registry
+      - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
-          registry: ${{ env.ACR_LOGIN_SERVER }}
-          username: ${{ secrets.AZURE_REGISTRY_USERNAME }}
-          password: ${{ secrets.AZURE_REGISTRY_PASSWORD }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Build and push Docker image
         run: |
-          IMAGE_TAG="${{ env.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
-          IMAGE_LATEST="${{ env.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:latest"
+          IMAGE_TAG="${{ env.IMAGE_NAME }}:${{ github.sha }}"
+          IMAGE_LATEST="${{ env.IMAGE_NAME }}:latest"
           
           docker build -t $IMAGE_TAG -t $IMAGE_LATEST .
           docker push $IMAGE_TAG
@@ -54,12 +51,22 @@ jobs:
           
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
       
-      # 部署到 Web App (現在不需要 publish-profile 參數了)
-      - name: Deploy to Azure Web App
-        uses: azure/webapps-deploy@v2
+      - name: Log in to Azure
+        uses: azure/login@v2
         with:
-          app-name: ${{ env.AZURE_WEBAPP_NAME }}
-          images: ${{ env.IMAGE_TAG }}
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      
+      - name: Update Azure Web App container settings
+        run: |
+          az webapp config container set \
+            --name ${{ env.AZURE_WEBAPP_NAME }} \
+            --resource-group MySpringProjectRG \
+            --docker-custom-image-name ${{ env.IMAGE_TAG }} \
+            --docker-registry-server-url https://ghcr.io
+          
+          az webapp restart \
+            --name ${{ env.AZURE_WEBAPP_NAME }} \
+            --resource-group MySpringProjectRG
       
       - name: Deployment Summary
         run: |
