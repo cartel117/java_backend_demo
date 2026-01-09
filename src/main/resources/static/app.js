@@ -98,9 +98,9 @@ async function handleLogin(event) {
             console.log('localStorage username:', localStorage.getItem('username'));
             console.log('localStorage token:', localStorage.getItem('jwtToken'));
             
-            // 登入成功後跳轉到商品頁面
+            // 登入成功後跳轉到購物頁面
             setTimeout(() => {
-                window.location.href = '/products.html';
+                window.location.href = '/shop.html';
             }, 100);
         } else {
             showMessage('loginMessage', data.message || '登入失敗，請檢查用戶名和密碼。', true);
