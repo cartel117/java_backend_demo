@@ -1,6 +1,8 @@
 package dev.backend.demo.service;
 
+import dev.backend.demo.model.Role;
 import dev.backend.demo.model.User;
+import dev.backend.demo.repository.RoleRepository;
 import dev.backend.demo.repository.UserRepository;
 import dev.backend.demo.dto.RegisterRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +20,9 @@ public class UserService {
     
     @Autowired
     private UserRepository userRepository;
+    
+    @Autowired
+    private RoleRepository roleRepository;
     
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
@@ -47,12 +52,19 @@ public class UserService {
         try {
             User user = new User();
             user.setUsername(request.getUsername());
-            user.setEmail(request.getEmail());
-            // 加密密碼後存入
-            user.setPassword(passwordEncoder.encode(request.getPassword()));
+            
+            // 設定預設角色為 CUSTOMER
+            Role customerRole = roleRepository.findByName("CUSTOMER");
+            if (customerRole == null) {
+                log.error("無法找到 CUSTOMER 角色，請確認資料庫已初始化角色資料");
+                throw new RuntimeException("系統錯誤：角色設定異常");
+            }
+            user.setRole(customerRole);
+            
             User savedUser = userRepository.save(user);
             
-            log.info("使用者註冊成功: userId={}, username={}", savedUser.getId(), savedUser.getUsername());
+            log.info("使用者註冊成功: userId={}, username={}, role={}", 
+                    savedUser.getId(), savedUser.getUsername(), savedUser.getRole().getName());
             return savedUser;
         } catch (Exception e) {
             log.error("註冊失敗: 資料庫錯誤, username={}, error={}", request.getUsername(), e.getMessage(), e);

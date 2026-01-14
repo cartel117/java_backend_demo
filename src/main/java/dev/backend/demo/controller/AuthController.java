@@ -183,15 +183,20 @@ public class AuthController {
             
             Map<String, Object> response = new HashMap<>();
             if (isValid) {
-                // ✅ 登入成功，生成包含 userId 的 JWT token
+                // ✅ 登入成功，生成僅包含身份識別的 JWT token（遵循業界最佳實踐）
                 String token = jwtUtil.generateToken(user.getUsername(), user.getId());
                 
-                log.info("API: 使用者登入成功, username={}, userId={}", user.getUsername(), user.getId());
+                // role 從資料庫查詢後返回給前端（用於 UI 顯示），但不存入 Token
+                String roleName = user.getRole() != null ? user.getRole().getName() : "CUSTOMER";
+                
+                log.info("API: 使用者登入成功, username={}, userId={}, role={}", 
+                        user.getUsername(), user.getId(), roleName);
                 
                 response.put("success", true);
                 response.put("message", "登入成功");
                 response.put("username", user.getUsername());
                 response.put("userId", user.getId());
+                response.put("role", roleName);  // 可返回給前端用於 UI，但權限判斷在後端
                 response.put("token", token);
                 return ResponseEntity.ok(response);
             } else {

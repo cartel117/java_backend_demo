@@ -1,5 +1,7 @@
 package dev.backend.demo.filter;
 
+import dev.backend.demo.model.User;
+import dev.backend.demo.service.UserService;
 import dev.backend.demo.util.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -7,6 +9,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
@@ -14,6 +18,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * JWT 身份驗證過濾器
@@ -24,6 +29,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Autowired
     private JwtUtil jwtUtil;
+    
+    @Autowired
+    private UserService userService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -68,9 +76,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             // 驗證 token
             if (jwtUtil.validateToken(jwt, username)) {
                 logger.info("✅ Token 驗證成功，使用者: " + username);
-                // 建立認證對象
+                
+                // 從資料庫動態查詢使用者權限（業界最佳實踐）
+                User user = userService.findByUsername(username);
+                List<GrantedAuthority> authorities = new ArrayList<>();
+                
+                if (user != null && user.getRole() != null) {
+                    // 添加角色權限（Spring Security 慣例：角色需要 ROLE_ 前綴）
+                    authorities.add(new SimpleGrantedAuthority("ROLE_" + user.getRole().getName()));
+                    logger.info("✅ 載入使用者權限: ROLE_" + user.getRole().getName());
+                }
+                
+                // 建立認證對象（包含從資料庫查詢的權限）
                 UsernamePasswordAuthenticationToken authenticationToken = 
-                    new UsernamePasswordAuthenticationToken(username, null, new ArrayList<>());
+                    new UsernamePasswordAuthenticationToken(username, null, authorities);
                 authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 
                 // 將認證對象設定到 Spring Security 上下文中

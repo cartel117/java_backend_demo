@@ -4,6 +4,7 @@ import dev.backend.demo.filter.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -17,6 +18,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
  */
 @Configuration // 標記這個類是一個配置類，會被 Spring 容器掃描
 @EnableWebSecurity // 啟用 Spring Security 的 Web 安全功能
+@EnableMethodSecurity // 啟用方法級別的安全性，支援 @PreAuthorize、@Secured 等註解
 public class SecurityConfig {
 
     @Autowired

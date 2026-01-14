@@ -116,6 +116,7 @@ public class JwtUtil {
 
     /**
      * 生成包含使用者 ID 的 token
+     * 遵循業界最佳實踐：Token 只存身份識別，權限判斷留給後端
      */
     public String generateToken(String username, Long userId) {
         Map<String, Object> claims = new HashMap<>();

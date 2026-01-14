@@ -26,4 +26,8 @@ public class User {
     
     @Column(nullable = false) // JPA 註解：設定欄位不可為 null
     private String password; // 使用者密碼
+    
+    @ManyToOne // JPA 註解：多對一關聯，多個使用者對應一個角色
+    @JoinColumn(name = "role_id") // JPA 註解：指定外鍵欄位名稱
+    private Role role; // 使用者角色
 }
