@@ -3,6 +3,7 @@ package dev.backend.demo.controller;
 import dev.backend.demo.model.Product;
 import dev.backend.demo.service.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -10,6 +11,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -59,48 +64,62 @@ public class ProductController {
      * - Authentication 參數可選，用於需要取得當前使用者資訊時
      */
     @GetMapping
-    // @Operation: 定義這個 API 的基本資訊，在 Swagger UI 中顯示
-    // summary: 簡短摘要（顯示在 API 列表）
-    // description: 詳細說明（展開後顯示）
     @Operation(
-        summary = "查詢所有產品",
-        description = "取得所有產品列表，可選擇性地根據分類 ID 篩選產品。需要 JWT Token 認證。"
+        summary = "查詢產品列表（支援分頁）",
+        description = "取得產品列表，支援分頁與排序。可選擇性根據分類 ID 篩選。需要 JWT Token 認證。"
     )
-    // @ApiResponses: 定義可能的回應狀態碼和內容
-    // 讓 API 使用者知道會收到什麼樣的回應
     @ApiResponses({
-        // HTTP 200: 成功回應
         @ApiResponse(
             responseCode = "200",
             description = "查詢成功",
             content = @Content(
-                mediaType = "application/json",  // 回應格式為 JSON
-                // 提供範例 JSON，方便測試時參考
+                mediaType = "application/json",
                 examples = @ExampleObject(value = """
-                    [
-                      {
-                        "id": 1,
-                        "name": "iPhone 15 Pro",
-                        "price": 35900.00,
-                        "categoryId": 1,
-                        "imageUrl": "https://example.com/iphone15.jpg",
-                        "description": "最新款 iPhone"
-                      }
-                    ]
+                    {
+                      "content": [
+                        {
+                          "id": 1,
+                          "name": "iPhone 15 Pro",
+                          "price": 35900.00,
+                          "categoryId": 1,
+                          "imageUrl": "https://example.com/iphone15.jpg",
+                          "description": "最新款 iPhone"
+                        }
+                      ],
+                      "totalElements": 100,
+                      "totalPages": 10,
+                      "number": 0,
+                      "size": 10,
+                      "first": true,
+                      "last": false
+                    }
                     """)
             )
         ),
-        // HTTP 401: 未認證錯誤
         @ApiResponse(responseCode = "401", description = "未認證（需要 JWT Token）")
     })
-    public ResponseEntity<List<Product>> getAllProducts(Authentication authentication) {
-        // 可選：記錄當前操作使用者（用於審計）
-        // if (authentication != null) {
-        //     String username = authentication.getName();
-        //     log.debug("User {} is fetching all products", username);
-        // }
-        
-        List<Product> products = productService.getAllProducts();
+    public ResponseEntity<Page<Product>> getAllProducts(
+            @Parameter(description = "頁碼（從 0 開始）", example = "0")
+            @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "每頁筆數", example = "10")
+            @RequestParam(defaultValue = "10") int size,
+            @Parameter(description = "排序欄位", example = "id")
+            @RequestParam(defaultValue = "id") String sortBy,
+            @Parameter(description = "排序方向：asc 或 desc", example = "asc")
+            @RequestParam(defaultValue = "asc") String sortDir,
+            @Parameter(description = "分類 ID（可選）")
+            @RequestParam(required = false) Long categoryId,
+            Authentication authentication) {
+
+        Sort sort = sortDir.equalsIgnoreCase("desc")
+                ? Sort.by(sortBy).descending()
+                : Sort.by(sortBy).ascending();
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Page<Product> products = categoryId != null
+                ? productService.getProductsByCategoryIdPaged(categoryId, pageable)
+                : productService.getAllProductsPaged(pageable);
+
         return ResponseEntity.ok(products);
     }
     

@@ -1,6 +1,8 @@
 package dev.backend.demo.repository;
 
 import dev.backend.demo.model.Product;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -37,9 +39,14 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     
     /**
      * 根據分類 ID 查詢產品列表
-     * 
+     *
      * 等同於 SQL: SELECT * FROM products WHERE category_id = ?
      * 返回符合條件的所有商品
      */
     java.util.List<Product> findByCategoryId(Long categoryId);
+
+    /**
+     * 根據分類 ID 查詢產品列表（分頁）
+     */
+    Page<Product> findByCategoryId(Long categoryId, Pageable pageable);
 }

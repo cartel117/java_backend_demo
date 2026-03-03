@@ -5,6 +5,8 @@ import dev.backend.demo.model.Product;
 import dev.backend.demo.repository.ProductRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
@@ -20,7 +22,7 @@ public class ProductService {
     private ProductRepository productRepository;
     
     /**
-     * 取得所有產品
+     * 取得所有產品（不分頁）
      * @return 所有產品列表
      */
     public List<Product> getAllProducts() {
@@ -28,6 +30,32 @@ public class ProductService {
         List<Product> products = productRepository.findAll();
         log.info("查詢到 {} 個產品", products.size());
         return products;
+    }
+
+    /**
+     * 取得所有產品（分頁）
+     * @param pageable 分頁參數（page, size, sort）
+     * @return 分頁產品結果
+     */
+    public Page<Product> getAllProductsPaged(Pageable pageable) {
+        log.debug("取得產品列表（分頁）: page={}, size={}", pageable.getPageNumber(), pageable.getPageSize());
+        Page<Product> result = productRepository.findAll(pageable);
+        log.info("分頁查詢: 第 {} 頁，每頁 {} 筆，共 {} 筆，共 {} 頁",
+                pageable.getPageNumber(), pageable.getPageSize(),
+                result.getTotalElements(), result.getTotalPages());
+        return result;
+    }
+
+    /**
+     * 根據分類 ID 取得產品（分頁）
+     * @param categoryId 分類 ID
+     * @param pageable 分頁參數
+     * @return 分頁產品結果
+     */
+    public Page<Product> getProductsByCategoryIdPaged(Long categoryId, Pageable pageable) {
+        log.debug("根據分類查詢產品（分頁）: categoryId={}, page={}, size={}",
+                categoryId, pageable.getPageNumber(), pageable.getPageSize());
+        return productRepository.findByCategoryId(categoryId, pageable);
     }
     
     /**
