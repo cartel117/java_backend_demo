@@ -796,7 +796,7 @@
             try {
                 showLoading(true);
 
-                let url = `${API_BASE_URL}/products?page=${page}&size=12&sortBy=id&sortDir=asc`;
+                let url = `${API_BASE_URL}/products?page=${page}&size=12&sortBy=productId&sortDir=asc`;
                 if (categoryId) url += `&categoryId=${categoryId}`;
 
                 const response = await fetch(url, {

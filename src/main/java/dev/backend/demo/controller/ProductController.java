@@ -104,8 +104,8 @@ public class ProductController {
             @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "每頁筆數", example = "10")
             @RequestParam(defaultValue = "10") int size,
-            @Parameter(description = "排序欄位", example = "id")
-            @RequestParam(defaultValue = "id") String sortBy,
+            @Parameter(description = "排序欄位", example = "productId")
+            @RequestParam(defaultValue = "productId") String sortBy,
             @Parameter(description = "排序方向：asc 或 desc", example = "asc")
             @RequestParam(defaultValue = "asc") String sortDir,
             @Parameter(description = "分類 ID（可選）")
