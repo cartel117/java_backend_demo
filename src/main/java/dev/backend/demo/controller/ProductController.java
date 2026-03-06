@@ -1,5 +1,6 @@
 package dev.backend.demo.controller;
 
+import dev.backend.demo.dto.PageResponse;
 import dev.backend.demo.model.Product;
 import dev.backend.demo.service.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -98,7 +99,7 @@ public class ProductController {
         ),
         @ApiResponse(responseCode = "401", description = "未認證（需要 JWT Token）")
     })
-    public ResponseEntity<Page<Product>> getAllProducts(
+    public ResponseEntity<PageResponse<Product>> getAllProducts(
             @Parameter(description = "頁碼（從 0 開始）", example = "0")
             @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "每頁筆數", example = "10")
@@ -120,7 +121,7 @@ public class ProductController {
                 ? productService.getProductsByCategoryIdPaged(categoryId, pageable)
                 : productService.getAllProductsPaged(pageable);
 
-        return ResponseEntity.ok(products);
+        return ResponseEntity.ok(new PageResponse<>(products));
     }
     
     /**

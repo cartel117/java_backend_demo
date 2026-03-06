@@ -694,9 +694,12 @@
          */
         const API_BASE_URL = '/api';
         let cart = [];           // 購物車陣列
-        let allProducts = [];    // 所有商品資料
+        let allProducts = [];    // 當前頁商品資料
         let jwtToken = null;     // JWT 驗證令牌
         let currentUsername = null; // 當前使用者名稱
+        let currentPage = 0;     // 當前頁碼
+        let totalPages = 0;      // 總頁數
+        let currentCategory = null; // 當前分類
 
         // 商品圖示映射（用於商品卡片顯示）
         const productIcons = {
@@ -788,73 +791,76 @@
             }, 100);
         });
 
-        // 載入商品
-        async function loadProducts() {
+        // 載入商品（支援分頁）
+        async function loadProducts(page = 0, categoryId = null) {
             try {
                 showLoading(true);
-                
-                console.log('=== 準備載入商品 ===');
-                console.log('API URL:', `${API_BASE_URL}/products`);
-                console.log('jwtToken:', jwtToken ? jwtToken.substring(0, 30) + '...' : 'null');
-                console.log('Authorization header:', `Bearer ${jwtToken ? jwtToken.substring(0, 30) + '...' : 'null'}`);
-                
-                const response = await fetch(`${API_BASE_URL}/products`, {
-                    headers: {
-                        'Authorization': `Bearer ${jwtToken}`
-                    }
+
+                let url = `${API_BASE_URL}/products?page=${page}&size=12&sortBy=id&sortDir=asc`;
+                if (categoryId) url += `&categoryId=${categoryId}`;
+
+                const response = await fetch(url, {
+                    headers: { 'Authorization': `Bearer ${jwtToken}` }
                 });
-                
-                console.log('API 回應狀態:', response.status);
-                console.log('API 回應 headers:', response.headers);
-                
+
                 if (response.status === 401) {
-                    // JWT token 無效或過期
-                    console.error('❌ 收到 401 錯誤：認證失敗');
-                    console.log('可能原因：');
-                    console.log('1. Token 格式錯誤');
-                    console.log('2. Token 已過期');
-                    console.log('3. 後端 JWT secret 不匹配');
-                    console.log('4. Token 簽名驗證失敗');
-                    
-                    // 嘗試獲取錯誤詳情
-                    try {
-                        const errorData = await response.json();
-                        console.log('錯誤詳情:', errorData);
-                    } catch (e) {
-                        console.log('無法解析錯誤回應');
-                    }
-                    
                     alert('您的登入狀態已過期，請重新登入');
-                    localStorage.removeItem('jwtToken');
-                    localStorage.removeItem('username');
-                    sessionStorage.removeItem('jwtToken');
-                    sessionStorage.removeItem('username');
-                    window.location.href = '/login.html';
-                    return;
-                }
-                
-                if (response.status === 403) {
-                    // 權限不足
-                    console.log('收到 403 錯誤：權限不足');
-                    alert('權限不足或登入狀態異常，請重新登入');
-                    localStorage.removeItem('jwtToken');
-                    localStorage.removeItem('username');
+                    ['jwtToken','username'].forEach(k => {
+                        localStorage.removeItem(k);
+                        sessionStorage.removeItem(k);
+                    });
                     window.location.href = '/login.html';
                     return;
                 }
 
-                if (!response.ok) {
-                    throw new Error('載入商品失敗');
-                }
+                if (!response.ok) throw new Error('載入商品失敗');
 
-                allProducts = await response.json();
+                const data = await response.json();
+                allProducts = data.content;
+                currentPage = data.page;
+                totalPages = data.totalPages;
+
                 displayProducts(allProducts);
+                renderPagination(data);
             } catch (error) {
                 console.error('Error:', error);
                 showToast('載入商品失敗', 'error');
             } finally {
                 showLoading(false);
             }
+        }
+
+        // 渲染分頁按鈕
+        function renderPagination(data) {
+            let container = document.getElementById('paginationContainer');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'paginationContainer';
+                container.style.cssText = 'display:flex;justify-content:center;align-items:center;gap:8px;margin:24px 0;flex-wrap:wrap;';
+                document.getElementById('productsGrid').after(container);
+            }
+
+            if (data.totalPages <= 1) { container.innerHTML = ''; return; }
+
+            let html = '';
+            html += `<button onclick="goToPage(${data.page - 1})" ${data.first ? 'disabled' : ''} style="padding:8px 16px;border:1px solid #ddd;border-radius:6px;cursor:pointer;background:${data.first ? '#f5f5f5' : '#fff'};">上一頁</button>`;
+
+            for (let i = 0; i < data.totalPages; i++) {
+                const isActive = i === data.page;
+                html += `<button onclick="goToPage(${i})" style="padding:8px 14px;border:1px solid ${isActive ? '#6c63ff' : '#ddd'};border-radius:6px;cursor:pointer;background:${isActive ? '#6c63ff' : '#fff'};color:${isActive ? '#fff' : '#333'};">${i + 1}</button>`;
+            }
+
+            html += `<button onclick="goToPage(${data.page + 1})" ${data.last ? 'disabled' : ''} style="padding:8px 16px;border:1px solid #ddd;border-radius:6px;cursor:pointer;background:${data.last ? '#f5f5f5' : '#fff'};">下一頁</button>`;
+            html += `<span style="color:#666;font-size:14px;">共 ${data.totalElements} 筆</span>`;
+
+            container.innerHTML = html;
+        }
+
+        // 跳至指定頁
+        function goToPage(page) {
+            if (page < 0 || page >= totalPages) return;
+            loadProducts(page, currentCategory);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         // 顯示商品
@@ -929,14 +935,10 @@
             });
         }
 
-        // 依分類過濾
+        // 依分類過濾（透過 API）
         function filterByCategory(category) {
-            if (category === 'all') {
-                displayProducts(allProducts);
-            } else {
-                const filtered = allProducts.filter(p => p.categoryId == category);
-                displayProducts(filtered);
-            }
+            currentCategory = (category === 'all') ? null : category;
+            loadProducts(0, currentCategory);
         }
 
         // 搜尋商品
